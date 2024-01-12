@@ -25,9 +25,7 @@ def sql(func):
             return params[1:]
         raise ValueError(f"Unsupported SQL operation for method: {method_name}")
 
-         
-        
-    # 如果原函数不是类方法，则将其转换为类方法并返回
+    # 转换为类方法并返回
     return classmethod(wrapper)
 
 
@@ -38,5 +36,5 @@ class User:
     def selectByAccountAndPassword(a: int, b: str) -> 'List[User]':pass
 
 # 示例调用
-user_count = User.selectByAccountAndPassword(1,2)
+user_count:List[User] = User.selectByAccountAndPassword(1,2)
 print(user_count)
