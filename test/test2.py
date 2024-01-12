@@ -2,7 +2,7 @@ from typing import List, Union, TypeVar
 from abc import ABCMeta
 
 
-T = TypeVar('T', bound='Model')
+T = TypeVar('T', bound='LaModel')
 
 class LaModel(metaclass=ABCMeta):
 
@@ -14,13 +14,7 @@ class LaModel(metaclass=ABCMeta):
     def delete(cls: type[T], id: Union[int, str]):
         print(f"delete one{str(id)}")
 
-
-# 自定义生成sql
-def sql(cls):
-    pass
-
 class FieldDescriptor:
-    
     def __init__(self, primary=False):
         self.primary = primary
         
@@ -43,6 +37,9 @@ def table(_table_name:str):
 
         return DecoratedModel
     return wrapper
+# 自定义生成sql装饰器
+def sql(cls):
+    pass
 
 @table('user')
 class User:
@@ -65,6 +62,4 @@ class User:
 #2. FieldDescriptor属性赋值方法，可以对字段进行收集，为后续的功能打下环境基础
 # print(User.tablename,User.dictMap)
 
-#.研究动态反射加方法
-# User.selectByAccountAndPassword("123","123")
 
