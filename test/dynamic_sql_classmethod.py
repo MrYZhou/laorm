@@ -2,15 +2,10 @@ import inspect
 from typing import List
 
 def sql(func):
-    if hasattr(func, '__func__'):  # 检查func是否已经是类方法（具有__func__属性）
-        is_classmethod = True
-    else:
-        is_classmethod = False
-    
+   
     sig = inspect.signature(func)
     return_annotation = sig.return_annotation
     def wrapper(*args, **kwargs):
-        # nonlocal is_classmethod
         
         # 获取方法名和参数
         method_name = func.__name__
@@ -19,10 +14,8 @@ def sql(func):
         print(params, method_name,method_cache_name)
           
         # 检查并处理返回类型
-        if return_annotation is not inspect.Signature.empty:
-            print(f"Method '{method_name}' has a return type annotation of: {return_annotation}")
-
-       
+        
+        print(f"Method '{method_name}' has a return type annotation of: {return_annotation}")
 
         # 翻译方法成SQL语句
         if method_name == 'selectByAccountAndPassword':
@@ -35,10 +28,7 @@ def sql(func):
          
         
     # 如果原函数不是类方法，则将其转换为类方法并返回
-    if not is_classmethod:
-        wrapper = classmethod(wrapper)
-
-    return wrapper
+    return classmethod(wrapper)
 
 
 class User:
