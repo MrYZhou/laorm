@@ -9,6 +9,8 @@ User.select("*").where(name="123").orderby("date").where(age=18).get()
 
 select()
 sql()
+where()
+orderby()
 group()
 get(string id)
 getList(list[] ids)

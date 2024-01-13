@@ -1,22 +1,95 @@
-from typing import Union, TypeVar
+from typing import List, Union, TypeVar
 from abc import ABCMeta
+class SqlStateMachine:
+    def __init__(self):
+        self.states = ['INITIAL', 'SELECT', 'FROM', 'WHERE', 'GROUP_BY', 'HAVING', 'ORDER_BY', 'FINAL']
+        self.current_state = 'INITIAL'
+        self.keyword = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY']
+        self.sql_parts = {
+            'select': [],
+            'from': '',
+            'where': [],
+            'group_by': [],
+            'having': [],
+            'order_by': []
+        }
+    def process_keyword(self, keyword, value=None):
+        keyword = keyword.upper()
+        print( self.sql_parts)
+        # 异常返回
+        if self.current_state == 'SELECT' and  keyword!='BY':
+            return
+        if keyword == 'SELECT':
+            self.sql_parts['select'].append(value)
+            self.current_state = 'SELECT'
+        elif keyword == 'FROM':
+            self.sql_parts['from'] = value
+            self.current_state = 'FROM'
+        elif keyword == 'WHERE':
+            self.sql_parts['where'].append(value)
+            self.current_state = 'WHERE'
+        elif keyword == 'GROUP_BY':
+            self.sql_parts['group_by'].append(value)
+            self.current_state = 'GROUP_BY'
+        elif keyword == 'HAVING':
+            self.sql_parts['having'].append(value)
+            self.current_state = 'HAVING'
+        elif keyword == 'ORDER_BY':
+            self.sql_parts['order_by'].append(value)
+            self.current_state = 'ORDER_BY'
+        elif keyword == 'BY':
+            # self.sql_parts['order_by'].append(value)
+            self.current_state = 'BY'
+            pass  # 其他可能的状态处理
+            
+        self.finalize()
+
+    def finalize(self):
+        # 改成模板方法进行构建步骤
+        sql_query = f"SELECT {' ,'.join(self.sql_parts['select'])} FROM {self.sql_parts['from']} "
+        if self.sql_parts['where']:
+            sql_query += f"WHERE {' AND '.join(self.sql_parts['where'])} "
+        if self.sql_parts['group_by']:
+            sql_query += f"GROUP BY {' ,'.join(self.sql_parts['group_by'])} "
+        if self.sql_parts['having']:
+            sql_query += f"HAVING {' AND '.join(self.sql_parts['having'])} "
+        if self.sql_parts['order_by']:
+            sql_query += f"ORDER BY {' ,'.join(self.sql_parts['order_by'])} "
+        
+        self.sql_query = sql_query
+        self.current_state = 'FINAL'
 
 
 T = TypeVar('T', bound='LaModel')
 
 class LaModel(metaclass=ABCMeta):
+    # def __new__(self) -> None:
+    #     self.excuteSql = ''
+
+    excuteSql = ''
+    state_machine = SqlStateMachine()    
     @classmethod
     def select(cls: type[T], params:str = "*" ):
-        print("SELECT", params)
+        print("SELECT", print(id(cls.state_machine)))
         return cls
 
     @classmethod
-    def get(cls: type[T], id: Union[int, str]):
-        print("get one", id)
+    def get(cls: type[T], primaryId: Union[int, str]):
+        print("get one", print(id(cls.state_machine)))
+       
+    @classmethod
+    def getList(cls: type[T], primaryIdList: Union[List[int], List[str]]):
+        print("getList", primaryIdList)
+       
 
     @classmethod
-    def delete(cls: type[T], id: Union[int, str]):
-        print(f"delete one{str(id)}")
+    def sql(cls: type[T]):
+        print("sql:"+ cls.excuteSql)
+        return cls   
+    @classmethod
+    def where(cls: type[T],*args):
+        print("sql:"+ cls.excuteSql)
+        return cls   
 
 class FieldDescriptor:
     def __init__(self, primary=False):
@@ -45,7 +118,7 @@ class User:
 # 1.现在 User 类已经有了 get 和 delete 方法，说明可以通过元类装饰器实现类的增强。添加我们想给类添加的方法
 # sql方法。元装饰器 @table('user')
 
-User.select().get(1)
+User.select().sql().get(1)
 
 #2. FieldDescriptor属性赋值方法，可以对字段进行收集，为后续的功能打下环境基础
 # print(User.tablename,User.dictMap)
