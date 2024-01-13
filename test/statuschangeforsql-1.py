@@ -2,6 +2,7 @@ class SqlStateMachine:
     def __init__(self):
         self.states = ['INITIAL', 'SELECT', 'FROM', 'WHERE', 'GROUP_BY', 'HAVING', 'ORDER_BY', 'FINAL']
         self.current_state = 'INITIAL'
+        self.keyword = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY']
         self.sql_parts = {
             'select': [],
             'from': '',
@@ -10,11 +11,9 @@ class SqlStateMachine:
             'having': [],
             'order_by': []
         }
-
     def process_keyword(self, keyword, value=None):
-        if keyword in ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY']:
-            if self.current_state not in ['INITIAL', keyword.lower()]:
-                raise ValueError("Invalid state transition")
+        print( self.sql_parts)
+        if keyword in  self.keyword:
             
             if keyword == 'SELECT':
                 self.sql_parts['select'].append(value)
@@ -42,7 +41,7 @@ class SqlStateMachine:
     def finalize(self):
         sql_query = f"SELECT {' ,'.join(self.sql_parts['select'])} FROM {self.sql_parts['from']} "
         if self.sql_parts['where']:
-            sql_query += "WHERE {' AND '.join(self.sql_parts['where'])} "
+            sql_query += f"WHERE {' AND '.join(self.sql_parts['where'])} "
         if self.sql_parts['group_by']:
             sql_query += f"GROUP BY {' ,'.join(self.sql_parts['group_by'])} "
         if self.sql_parts['having']:
@@ -55,9 +54,10 @@ class SqlStateMachine:
 
 # 使用状态机构建SQL语句
 state_machine = SqlStateMachine()
-state_machine.process_keyword('SELECT', '*')
-state_machine.process_keyword('FROM', 'table_name')
-state_machine.process_keyword('WHERE', 'column1 = value1')
+state_machine.process_keyword('SELECT', 'username')
+state_machine.process_keyword('FROM', 'user')
+state_machine.process_keyword('WHERE', 'Account = admin')
+state_machine.process_keyword('WHERE', 'Password = 123')
 state_machine.process_keyword('ORDER BY', 'column2 DESC')
 
 print(state_machine.sql_query)
