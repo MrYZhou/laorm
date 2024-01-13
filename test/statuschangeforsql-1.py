@@ -64,3 +64,5 @@ print(state_machine.sql_query)
 
 
 #通过状态机来对一个sql方法解析为sql语句,下一个阶段dynamic-basic
+# selectByAccountAndPassword [1, 2] ==>
+# ['select', 'By', 'Account', 'And', 'Password']
