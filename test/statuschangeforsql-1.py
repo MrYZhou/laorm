@@ -61,3 +61,6 @@ state_machine.process_keyword('WHERE', 'column1 = value1')
 state_machine.process_keyword('ORDER BY', 'column2 DESC')
 
 print(state_machine.sql_query)
+
+
+#通过状态机来对一个sql方法解析为sql语句,下一个阶段dynamic-basic

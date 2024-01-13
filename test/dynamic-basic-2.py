@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Union, TypeVar
+from typing import Dict, Union, TypeVar
 from abc import ABCMeta
 
 
@@ -49,3 +49,5 @@ def parseMethodToSql(dynamicSql: str):
 combined_input = "selectByAccountAndPassword"
 result = parseMethodToSql(combined_input)
 print(result)
+
+#parsql 完成后得到查询字符串然后只要直接用ppa执行exec即可
