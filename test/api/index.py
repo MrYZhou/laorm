@@ -1,10 +1,14 @@
-from typing import List, Union, TypeVar
+from typing import Union, TypeVar
 from abc import ABCMeta
 
 
 T = TypeVar('T', bound='LaModel')
 
 class LaModel(metaclass=ABCMeta):
+    @classmethod
+    def select(cls: type[T], params:str = "*" ):
+        print("SELECT", params)
+        return cls
 
     @classmethod
     def get(cls: type[T], id: Union[int, str]):
@@ -38,10 +42,10 @@ class User:
     name:str = FieldDescriptor()
 
 
-# 1.现在 User 类已经有了 get 和 delete 方法，说明可以通过元类装饰器实现类的增强。添加我们想给类添加的常见
+# 1.现在 User 类已经有了 get 和 delete 方法，说明可以通过元类装饰器实现类的增强。添加我们想给类添加的方法
 # sql方法。元装饰器 @table('user')
-# User.get(1)
-# User.delete(1)
+
+User.select().get(1)
 
 #2. FieldDescriptor属性赋值方法，可以对字段进行收集，为后续的功能打下环境基础
 # print(User.tablename,User.dictMap)
