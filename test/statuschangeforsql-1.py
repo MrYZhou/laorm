@@ -14,7 +14,6 @@ class SqlStateMachine:
     def process_keyword(self, keyword, value=None):
         print( self.sql_parts)
         if keyword in  self.keyword:
-            
             if keyword == 'SELECT':
                 self.sql_parts['select'].append(value)
                 self.current_state = 'SELECT'
@@ -39,6 +38,7 @@ class SqlStateMachine:
         self.finalize()
 
     def finalize(self):
+        # 改成模板方法进行构建步骤
         sql_query = f"SELECT {' ,'.join(self.sql_parts['select'])} FROM {self.sql_parts['from']} "
         if self.sql_parts['where']:
             sql_query += f"WHERE {' AND '.join(self.sql_parts['where'])} "
