@@ -72,16 +72,6 @@ class LaModel(metaclass=ABCMeta):
     def select(cls: type[T], params:str = "*" ):
         print("SELECT", print(id(cls.state_machine)))
         return cls
-
-    @classmethod
-    def get(cls: type[T], primaryId: Union[int, str]):
-        print("get one", print(id(cls.state_machine)))
-       
-    @classmethod
-    def getList(cls: type[T], primaryIdList: Union[List[int], List[str]]):
-        print("getList", primaryIdList)
-       
-
     @classmethod
     def sql(cls: type[T]):
         print("sql:"+ cls.excuteSql)
@@ -89,7 +79,17 @@ class LaModel(metaclass=ABCMeta):
     @classmethod
     def where(cls: type[T],*args):
         print("sql:"+ cls.excuteSql)
-        return cls   
+        return cls
+
+    # 结束方法,需要进行sql的构建,执行
+
+    @classmethod
+    def get(cls: type[T], primaryId: Union[int, str]):
+        print("get one", print(id(cls.state_machine)))
+       
+    @classmethod
+    def getList(cls: type[T], primaryIdList: Union[List[int], List[str]]):
+        print("getList", primaryIdList)   
 
 class FieldDescriptor:
     def __init__(self, primary=False):
@@ -104,7 +104,7 @@ class FieldDescriptor:
 def table(_table_name:str):
     def wrapper(cls):
         class DecoratedModel(LaModel, cls):
-            tablename = _table_name  # 将表名存储到类属性中
+            tablename = _table_name if _table_name else cls.__name__.lower()  # 将表名存储到类属性中
         return DecoratedModel
     return wrapper
 
@@ -114,11 +114,18 @@ class User:
     id:str = FieldDescriptor(primary=True)
     name:str = FieldDescriptor()
 
+@table('user2')
+class User2:
+    id:str = FieldDescriptor(primary=True)
+    name:str = FieldDescriptor()
 
-# 1.现在 User 类已经有了 get 和 delete 方法，说明可以通过元类装饰器实现类的增强。添加我们想给类添加的方法
-# sql方法。元装饰器 @table('user')
+
+
 
 User.select().sql().get(1)
+
+
+# User2.select().sql().get(1)
 
 #2. FieldDescriptor属性赋值方法，可以对字段进行收集，为后续的功能打下环境基础
 # print(User.tablename,User.dictMap)
