@@ -1,5 +1,38 @@
+import asyncio
 from typing import Any, Dict, Sequence, TypeVar, Union
 from abc import ABCMeta
+import aiomysql
+from core.index import PPA
+
+# class PPA:
+#     _instance = None
+#     pool = None
+
+#     @classmethod
+#     async def startup(cls):
+#         cls.pool = await aiomysql.create_pool(**cls.startup_params)
+
+#     @classmethod
+#     async def shutdown(cls):
+#         if cls.pool is not None:
+#             cls.pool.close()
+#             await cls.pool.wait_closed()
+
+#     @classmethod
+#     async def exec(cls, sql: str, params: Union[Dict[str, any], tuple, list] = None):
+      
+#         # sql注入攻击过滤处理
+#         sql = sql.replace("?", "%s")
+        
+#         if isinstance(params, (dict)):
+#             # 参数化查询（使用字典）,转元组
+#             sql = sql.format_map(dict.fromkeys(params.keys(),'%s'))
+#             params=tuple(params.values())
+
+#         async with cls.pool.acquire() as conn:
+#             async with conn.cursor(aiomysql.DictCursor) as cur:
+#                 await cur.execute(sql,params)
+#                 return await cur.fetchall()
 
 
 class SqlStateMachine:
@@ -111,13 +144,20 @@ class LaModel(metaclass=ABCMeta):
     # 结束方法,需要进行sql的构建,执行
     @classmethod
     def get(cls: type[T], primaryId: int|str):
+        if primaryId:
+            cls.state_machine.process_keyword('WHERE', f'{cls.primaryKey}={primaryId}')
+        cls.exec()
+    @classmethod
+    def exec(cls):
+        print(cls.sql())
         if not cls.state_machine.execute_sql:
             cls.state_machine.finalize()
-        print("get one", cls.state_machine.execute_sql)
-       
+        PPA.exec(cls.state_machine.execute_sql)  
     @classmethod
     def getList(cls: type[T], primaryIdList: list[int] | list[str] ):
-        print("getList", primaryIdList)   
+        if primaryIdList:
+            cls.state_machine.process_keyword('WHERE', f'{cls.primaryKey} in {primaryIdList}')
+        cls.exec()
 
 class FieldDescriptor:
 
@@ -128,6 +168,8 @@ class FieldDescriptor:
             owner.dictMap = {}
         owner.dictMap[name] = {}
         owner.dictMap[name]['primary'] = self.primary
+        if self.primary:
+            owner.primaryKey = name
 
 # 元类装饰器实现
 def table(_table_name:str=None):
@@ -155,7 +197,9 @@ class User:
 #3.测试直接查询
 # User.get(1) 
 # 4.测试where
+
 User.where('name',1).match('age',18).get(1)       
+
 
 # 二、FieldDescriptor测试
 #2. FieldDescriptor属性赋值方法，可以对字段进行收集，为后续的功能打下环境基础
