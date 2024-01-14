@@ -1,6 +1,6 @@
 from typing import TypeVar
 from abc import ABCMeta
-from core.index import PPA
+from laorm.core.PPA import PPA
 
 # class PPA:
 #     _instance = None
