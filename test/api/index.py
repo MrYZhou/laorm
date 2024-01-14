@@ -69,8 +69,9 @@ class LaModel(metaclass=ABCMeta):
     excuteSql = ''
     state_machine = SqlStateMachine()    
     @classmethod
-    def select(cls: type[T], params:str = "*" ):
-        print("SELECT", print(id(cls.state_machine)))
+    def select(cls: type[T], params:str = "*" )->type[T]:
+        print("SELECT", )
+        cls.excuteSql = params
         return cls
     @classmethod
     def sql(cls: type[T]):
@@ -85,7 +86,7 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     def get(cls: type[T], primaryId: Union[int, str]):
-        print("get one", print(id(cls.state_machine)))
+        print("get one", )
        
     @classmethod
     def getList(cls: type[T], primaryIdList: Union[List[int], List[str]]):
@@ -104,7 +105,11 @@ class FieldDescriptor:
 def table(_table_name:str):
     def wrapper(cls):
         class DecoratedModel(LaModel, cls):
-            tablename = _table_name if _table_name else cls.__name__.lower()  # 将表名存储到类属性中
+            # 将表名存储到类属性中
+            tablename = _table_name if _table_name else cls.__name__.lower()  
+            def __init_subclass__(cls) -> None:
+                # 初始化内容                
+                return super().__init_subclass__()
         return DecoratedModel
     return wrapper
 
@@ -113,6 +118,7 @@ def table(_table_name:str):
 class User:
     id:str = FieldDescriptor(primary=True)
     name:str = FieldDescriptor()
+    
 
 @table('user2')
 class User2:
@@ -122,8 +128,8 @@ class User2:
 
 
 
-User.select().sql().get(1)
-
+User.select("11").sql().get(1) 
+User2.select("12").sql()
 
 # User2.select().sql().get(1)
 
