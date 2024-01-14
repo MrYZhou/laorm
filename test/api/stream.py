@@ -1,9 +1,12 @@
-from typing import List, Union, TypeVar
+from typing import Any, Dict, Sequence, TypeVar, Union
 from abc import ABCMeta
+
+
 class SqlStateMachine:
-    def __init__(self):
+    def __init__(self,*args):
         self.states = ['INITIAL', 'SELECT', 'FROM', 'WHERE', 'GROUP_BY', 'HAVING', 'ORDER_BY', 'FINAL']
         self.current_state = 'INITIAL'
+        self.execute_sql = ''
         self.keyword = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY']
         self.sql_parts = {
             'select': [],
@@ -17,7 +20,7 @@ class SqlStateMachine:
         keyword = keyword.upper()
         print( self.sql_parts)
         # 异常返回
-        if self.current_state == 'SELECT' and  keyword!='BY':
+        if self.current_state == 'SELECT' and  keyword not in ['BY','FROM']:
             return
         if keyword == 'SELECT':
             self.sql_parts['select'].append(value)
@@ -41,58 +44,83 @@ class SqlStateMachine:
             # self.sql_parts['order_by'].append(value)
             self.current_state = 'BY'
             pass  # 其他可能的状态处理
-            
-        self.finalize()
 
     def finalize(self):
         # 改成模板方法进行构建步骤
-        sql_query = f"SELECT {' ,'.join(self.sql_parts['select'])} FROM {self.sql_parts['from']} "
+        if not self.sql_parts['select']:
+            self.sql_parts['select'] = ['*']
+        execute_sql = f"SELECT {' ,'.join(self.sql_parts['select'])} FROM {self.sql_parts['from']} "
         if self.sql_parts['where']:
-            sql_query += f"WHERE {' AND '.join(self.sql_parts['where'])} "
+            execute_sql += f"WHERE {' AND '.join(self.sql_parts['where'])} "
         if self.sql_parts['group_by']:
-            sql_query += f"GROUP BY {' ,'.join(self.sql_parts['group_by'])} "
+            execute_sql += f"GROUP BY {' ,'.join(self.sql_parts['group_by'])} "
         if self.sql_parts['having']:
-            sql_query += f"HAVING {' AND '.join(self.sql_parts['having'])} "
+            execute_sql += f"HAVING {' AND '.join(self.sql_parts['having'])} "
         if self.sql_parts['order_by']:
-            sql_query += f"ORDER BY {' ,'.join(self.sql_parts['order_by'])} "
+            execute_sql += f"ORDER BY {' ,'.join(self.sql_parts['order_by'])} "
         
-        self.sql_query = sql_query
+        self.execute_sql = execute_sql
         self.current_state = 'FINAL'
+        return self.execute_sql
 
 
 T = TypeVar('T', bound='LaModel')
 
 class LaModel(metaclass=ABCMeta):
-    # def __new__(self) -> None:
-    #     self.excuteSql = ''
+    def __init_subclass__(self) -> None:
+        self.state_machine.process_keyword('FROM', self.tablename)  
 
     excuteSql = ''
-    state_machine = SqlStateMachine()    
+    state_machine = SqlStateMachine()
+
+
     @classmethod
     def select(cls: type[T], params:str = "*" )->type[T]:
-        print("SELECT", )
-        cls.excuteSql = params
+        cls.state_machine.process_keyword('SELECT', params)
         return cls
     @classmethod
     def sql(cls: type[T]):
-        print("sql:"+ cls.excuteSql)
-        return cls   
+        return cls.state_machine.finalize()   
     @classmethod
     def where(cls: type[T],*args):
-        print("sql:"+ cls.excuteSql)
+        if len(args) % 2 != 0:
+            raise ValueError("Invalid argument length. It should contain an even number of elements for key-value pairs.")
+
+        # 使用zip将键和值配对，然后通过列表推导式生成条件子句并调用process_keyword方法
+        for key, value in zip(*[iter(args)] * 2):
+            cls.state_machine.process_keyword('WHERE', f'{key}={value}')
+        return cls
+    @classmethod
+    def match(cls: type[T],*args):
+        if len(args) % 2 != 0:
+            raise ValueError("Invalid argument length. It should contain an even number of elements for key-value pairs.")
+
+        # 使用zip将键和值配对，然后通过列表推导式生成条件子句并调用process_keyword方法
+        for key, value in zip(*[iter(args)] * 2):
+            cls.state_machine.process_keyword('WHERE', f'{key}={value}')
+        return cls
+    @classmethod
+    def valueIn(cls: type[T],*args):
+        pass
+        return cls
+    @classmethod
+    def valueNotIn(cls: type[T],*args):
+        pass
         return cls
 
     # 结束方法,需要进行sql的构建,执行
-
     @classmethod
-    def get(cls: type[T], primaryId: Union[int, str]):
-        print("get one", )
+    def get(cls: type[T], primaryId: int|str):
+        if not cls.state_machine.execute_sql:
+            cls.state_machine.finalize()
+        print("get one", cls.state_machine.execute_sql)
        
     @classmethod
-    def getList(cls: type[T], primaryIdList: Union[List[int], List[str]]):
+    def getList(cls: type[T], primaryIdList: list[int] | list[str] ):
         print("getList", primaryIdList)   
 
 class FieldDescriptor:
+
     def __init__(self, primary=False):
         self.primary = primary        
     def __set_name__(self, owner, name):
@@ -102,11 +130,12 @@ class FieldDescriptor:
         owner.dictMap[name]['primary'] = self.primary
 
 # 元类装饰器实现
-def table(_table_name:str):
+def table(_table_name:str=None):
     def wrapper(cls):
         class DecoratedModel(LaModel, cls):
             # 将表名存储到类属性中
-            tablename = _table_name if _table_name else cls.__name__.lower()  
+            tablename = _table_name if _table_name else cls.__name__.lower()
+            
             def __init_subclass__(cls) -> None:
                 # 初始化内容                
                 return super().__init_subclass__()
@@ -114,25 +143,21 @@ def table(_table_name:str):
     return wrapper
 
 
-@table('user')
+@table("user")
 class User:
     id:str = FieldDescriptor(primary=True)
     name:str = FieldDescriptor()
-    
 
-@table('user2')
-class User2:
-    id:str = FieldDescriptor(primary=True)
-    name:str = FieldDescriptor()
+# 1.测试打印sql    
+# print(User.select().sql())
+# 2.测试select    
+# User.select().get(1) 
+#3.测试直接查询
+# User.get(1) 
+# 4.测试where
+User.where('name',1).match('age',18).get(1)       
 
-
-
-
-User.select("11").sql().get(1) 
-User2.select("12").sql()
-
-# User2.select().sql().get(1)
-
+# 二、FieldDescriptor测试
 #2. FieldDescriptor属性赋值方法，可以对字段进行收集，为后续的功能打下环境基础
 # print(User.tablename,User.dictMap)
 
