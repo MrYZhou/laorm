@@ -2,7 +2,10 @@ import asyncio
 from typing import Any, Dict, Sequence, TypeVar, Union
 from abc import ABCMeta
 import aiomysql
-from core.index import PPA
+
+# from core import PPA
+from PPA import  PPA
+# from core.PPA import PPA as PPA
 
 # class PPA:
 #     _instance = None
@@ -198,7 +201,7 @@ class User:
 # User.get(1) 
 # 4.测试where
 
-User.where('name',1).match('age',18).get(1)       
+User.where(name=1).match('age',18).get(1)       
 
 
 # 二、FieldDescriptor测试
