@@ -1,3 +1,3 @@
-from core.PPA import PPA
+from . import PPA
 
 __all__ = ['PPA']

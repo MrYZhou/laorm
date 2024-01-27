@@ -1,7 +1,7 @@
 
 
 
-from core.stream import SqlStateMachine
+from stream import SqlStateMachine
 
 
 state_machine = SqlStateMachine()

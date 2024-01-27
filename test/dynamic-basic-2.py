@@ -1,33 +1,8 @@
 import re
-from typing import Dict, Union, TypeVar
-from abc import ABCMeta
+
+from stream import FieldDescriptor, table
 
 
-T = TypeVar('T', bound='LaModel')
-
-class LaModel(metaclass=ABCMeta):
-
-    @classmethod
-    def dynamic(cls: type[T], dynamicSql: str,params: Union[Dict[str, any], tuple, list] = None):
-        # 翻译dynamicSql
-        print("get ---",dynamicSql, params)
-
-class FieldDescriptor:
-    def __init__(self, primary=False):
-        self.primary = primary        
-    def __set_name__(self, owner, name):
-        if not hasattr(owner, 'dictMap'):
-            owner.dictMap = {}
-        owner.dictMap[name] = {}
-        owner.dictMap[name]['primary'] = self.primary
-
-# 元类装饰器实现
-def table(_table_name:str):
-    def wrapper(cls):
-        class DecoratedModel(LaModel, cls):
-            tablename = _table_name  # 将表名存储到类属性中
-        return DecoratedModel
-    return wrapper
 
 
 @table('user')
