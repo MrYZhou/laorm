@@ -16,7 +16,7 @@ setuptools.setup(
     # 包的分发名称，使用字母、数字、_、-
     name="laorm",
      # 版本号, 版本号规范：https://www.python.org/dev/peps/pep-0440/
-    version="1.0.0",
+    version="1.2.0",
     # 作者名
     author="larry",
      # 作者邮箱
@@ -33,9 +33,9 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     # 关于包的其他元数据(metadata)
     classifiers=[
-         # 该软件包仅与Python3兼容
+        # 该软件包兼容性:Python3.10
         "Programming Language :: Python :: 3.10",
-        # 根据MIT许可证开源
+        # 许可证开源信息
         "License :: OSI Approved :: Apache Software License",
         # 与操作系统无关
         "Operating System :: OS Independent",
