@@ -3,7 +3,7 @@ import re
 from typing import TypeVar
 from abc import ABCMeta
 
-from PPA import PPA
+from .PPA import PPA
 
 
 class SqlStateMachine:
