@@ -3,6 +3,10 @@
 
 laorm尽可能自然语言写法操作数据库，让orm操作pythonic.
 
+```
+pip install laorm
+```
+
 <a name="GLD90"></a>
 ### 方式1 动态查询
 直接在模型对象类定义一个方法，上面标注了@sql 
