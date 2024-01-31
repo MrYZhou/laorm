@@ -39,7 +39,7 @@ PPA.exec("SELECT * FROM config where id!=1")
 <a name="ocGWc"></a>
 ### 在fastapi中使用
 ```
-from laorm.core.PPA import PPA
+from laorm.PPA import PPA
 from fastapi import FastAPI
 
 class PPAFastAPI(PPA):
@@ -77,7 +77,7 @@ PPAFastAPI.init_app(app)
 
 ```
 from flask import Flask
-from laorm.core.PPA import PPA
+from laorm.PPA import PPA
 
 class PPAFlask(PPA):
     _instance = None
