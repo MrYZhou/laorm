@@ -2,7 +2,7 @@ import setuptools
 
 with open("README.md","r", encoding="utf-8") as fh:
     long_description = fh.read()
-    
+
 # pip install laorm 公共依赖
 install_requires = [
     'aiomysql',
@@ -36,7 +36,7 @@ setuptools.setup(
          # 该软件包仅与Python3兼容
         "Programming Language :: Python :: 3.10",
         # 根据MIT许可证开源
-        "License :: OSI Approved :: Apache License 2.0",
+        "License :: OSI Approved :: Apache Software License",
         # 与操作系统无关
         "Operating System :: OS Independent",
     ],
