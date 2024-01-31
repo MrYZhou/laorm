@@ -110,7 +110,7 @@ PPAFlask.init_app(app, {"host": "your_host", "password": "your_password"})  # �
 ```
 <a name="JkMUp"></a>
 ### 在django中使用
-Django框架确实内建了一个功能齐全的对象关系映射（ORM）系统。使用自带的orm就成。或者自己处理连接池关闭事件。django没有应用的关闭事件。
+Django框架内建了一个功能齐全的对象关系映射（ORM）系统。使用自带的orm就成。或者自己处理连接池关闭事件。django没有应用的关闭事件。
 
 <a name="LcqQ3"></a>
 ## 更多示例
