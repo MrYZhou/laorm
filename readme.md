@@ -68,8 +68,8 @@ class PPAFastAPI(PPA):
 
 ```
 app = FastAPI()
-# 初始化 PPAFlask
-PPAFlask.init_app(app)
+# 初始化
+PPAFastAPI.init_app(app)
 ```
 
 <a name="S8mk9"></a>
@@ -105,7 +105,7 @@ class PPAFlask(PPA):
 ```
 # 创建 Flask 应用实例
 app = Flask()
-# 初始化 PPAFlask
+# 初始化
 PPAFlask.init_app(app, {"host": "your_host", "password": "your_password"})  # 示例参数
 ```
 <a name="JkMUp"></a>
