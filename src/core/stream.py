@@ -2,7 +2,8 @@ import inspect
 import re
 from typing import TypeVar
 from abc import ABCMeta
-from laorm.core import PPA
+
+from PPA import PPA
 
 
 class SqlStateMachine:
