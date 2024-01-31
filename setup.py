@@ -2,7 +2,16 @@ import setuptools
 
 with open("README.md","r", encoding="utf-8") as fh:
     long_description = fh.read()
-
+    
+# pip install laorm 公共依赖
+install_requires = [
+    'aiomysql',
+]
+# pip install laorm[fastapi] 则只会依赖fastapi相关依赖
+extras_require = {
+    'fastapi': ['fastapi'],
+    'flask': ['flask'],
+}
 setuptools.setup(
     # 包的分发名称，使用字母、数字、_、-
     name="laorm",
@@ -31,4 +40,6 @@ setuptools.setup(
         # 与操作系统无关
         "Operating System :: OS Independent",
     ],
+    install_requires=install_requires,
+    extras_require=extras_require,
 )
