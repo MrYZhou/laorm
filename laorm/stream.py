@@ -234,7 +234,7 @@ class LaModel(metaclass=ABCMeta):
         if res:
             for key, _ in cls.dictMap.items():
                 setattr(cls, key, res.get(key))
-        return cls
+        return res
 
     @classmethod
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
