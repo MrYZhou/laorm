@@ -125,7 +125,9 @@ class SqlStateMachine:
         }
         return self.execute_sql
 
+
 T = TypeVar("T", bound="LaModel")
+
 
 class LaModel(metaclass=ABCMeta):
     def __init_subclass__(self) -> None:
@@ -135,25 +137,27 @@ class LaModel(metaclass=ABCMeta):
     excuteSql = ""
     state_machine = SqlStateMachine()
     cacheSql = {}
+
     @classmethod
-    async def dynamic(
-        cls: type[T], dynamicSql: str, params: str | list = None
-    ):
-        '''
+    async def dynamic(cls: type[T], dynamicSql: str, params: str | list = None):
+        """
         params是sql参数值
-        '''
+        """
         if cls.cacheSql.get(dynamicSql):
-            return await PPA.exec(sql=cls.cacheSql.get(dynamicSql),params=params,execOne=True)  
-        cls.cacheSql[dynamicSql] = cls.state_machine.execute_sql    
-       
+            return await PPA.exec(
+                sql=cls.cacheSql.get(dynamicSql), params=params, execOne=True
+            )
+        cls.cacheSql[dynamicSql] = cls.state_machine.execute_sql
+
         if params and not isinstance(params, (list, tuple)):
             params = [params]
-         # 翻译dynamicSql    
+        # 翻译dynamicSql
         cls.parseMethodToSql(dynamicSql)
-        res = await cls.exec(params=params,fetch_one=True)    
+        res = await cls.exec(params=params, fetch_one=True)
         return res
+
     @classmethod
-    def parseMethodToSql(cls: type[T],dynamicSql: str):
+    def parseMethodToSql(cls: type[T], dynamicSql: str):
         # 使用正则表达式找到所有大写字母的位置并进行分割
         parts = re.split("(?=[A-Z])", dynamicSql)
         # 去除可能出现的空字符串（例如：首位是大写字母的情况）
@@ -162,13 +166,15 @@ class LaModel(metaclass=ABCMeta):
         for i in parts[1:]:
             if i == "In" and len(cls.state_machine.sql_parts["where"]) > 0:
                 cls.state_machine.process_keyword(
-                    cls.state_machine.current_state, f'{cls.state_machine.sql_parts["where"].pop()} in (?)'
+                    cls.state_machine.current_state,
+                    f'{cls.state_machine.sql_parts["where"].pop()} in (?)',
                 )
                 continue
             if i == "By" or i == "And":
                 cls.state_machine.current_state = "where"
                 continue
-            cls.state_machine.process_keyword(cls.state_machine.current_state, f'{i}=?')
+            cls.state_machine.process_keyword(cls.state_machine.current_state, f"{i}=?")
+
     @classmethod
     def select(cls: type[T], params: str = "*") -> type[T]:
         cls.state_machine.process_keyword("select", params)
@@ -284,7 +290,7 @@ class LaModel(metaclass=ABCMeta):
         return cls
 
     @classmethod
-    async def exec(cls, fetch_one: bool = False,params={}):
+    async def exec(cls, fetch_one: bool = False, params={}):
         """
         执行sql fetch_one true是返回单条数据,fetch_many是返回列表数据
         """
@@ -323,24 +329,26 @@ def table(_table_name: str = None):
 
     return wrapper
 
+
 def sql(func):
-   
     sig = inspect.signature(func)
     return_annotation = sig.return_annotation
+
     def wrapper(*args, **kwargs):
-        
         # 获取方法名和参数
         method_name = func.__name__
         method_cache_name = func.__qualname__
         params = [str(arg) for arg in args]
-        print(params, method_name,method_cache_name)
-          
+        print(params, method_name, method_cache_name)
+
         # 检查并处理返回类型
-        
-        print(f"Method '{method_name}' has a return type annotation of: {return_annotation}")
+
+        print(
+            f"Method '{method_name}' has a return type annotation of: {return_annotation}"
+        )
 
         # 翻译方法成SQL语句
-        if method_name == 'selectByAccountAndPassword':
+        if method_name == "selectByAccountAndPassword":
             # 这里模拟根据return_annotation返回对应类型的值,比如列表处理为列表,单个处理单个对象
             # todo 后期优化为从对象内部的局部map获取类定义，然后用反射创建对象
 
