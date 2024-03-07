@@ -137,6 +137,7 @@ class LaModel(metaclass=ABCMeta):
     excuteSql = ""
     state_machine = SqlStateMachine()
     cacheSql = {}
+    cacheSqlBatch = {}
 
     @classmethod
     async def dynamic(cls: type[T], dynamicSql: str, params: str | list = None):
@@ -337,9 +338,12 @@ def sql(func):
     def wrapper(cls, *args, **kwargs):
         method_cache_name = func.__qualname__
         params = [str(arg) for arg in args]
+        # 缓存上次的查询情况
         if cls.cacheSql.get(method_cache_name):
             return PPA.exec(
-                sql=cls.cacheSql.get(method_cache_name), params=params, execOne=True
+                sql=cls.cacheSql.get(method_cache_name),
+                params=params,
+                execOne=cls.cacheSqlBatch[method_cache_name],
             )
 
         # 获取方法名和参数
@@ -355,7 +359,7 @@ def sql(func):
         fetch_one = True
         if callable(return_annotation):
             fetch_one = False
-
+        cls.cacheSqlBatch[method_cache_name] = fetch_one
         LaModel.parseMethodToSql(method_name)
         res = LaModel.exec(params=params, fetch_one=fetch_one)
         cls.cacheSql[method_cache_name] = cls.state_machine.execute_sql
