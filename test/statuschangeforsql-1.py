@@ -1,12 +1,11 @@
 from stream import SqlStateMachine
 
-
 state_machine = SqlStateMachine()
-state_machine.process_keyword("SELECT", "username")
-state_machine.process_keyword("FROM", "user")
-state_machine.process_keyword("WHERE", "Account = admin")
-state_machine.process_keyword("WHERE", "Password = 123")
-state_machine.process_keyword("ORDER BY", "column2 DESC")
+state_machine.process_keyword("select", "username")
+state_machine.process_keyword("from", "user")
+state_machine.process_keyword("where", "Account = admin")
+state_machine.process_keyword("where", "Password = 123")
+state_machine.process_keyword("order_by", "column2 DESC")
 state_machine.finalize()
 print(state_machine.execute_sql)
 

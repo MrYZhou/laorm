@@ -2,6 +2,7 @@ import inspect
 import re
 from typing import TypeVar
 from abc import ABCMeta
+
 import PPA
 
 
@@ -132,7 +133,6 @@ T = TypeVar("T", bound="LaModel")
 class LaModel(metaclass=ABCMeta):
     def __init_subclass__(self) -> None:
         self.state_machine.process_keyword("from", self.tablename)
-        self.getValue = dict().get
 
     excuteSql = ""
     state_machine = SqlStateMachine()
@@ -143,17 +143,20 @@ class LaModel(metaclass=ABCMeta):
         """
         params是sql参数值
         """
-        if cls.cacheSql.get(dynamicSql):
-            return await PPA.exec(
-                sql=cls.cacheSql.get(dynamicSql), params=params, execOne=True
-            )
-        cls.cacheSql[dynamicSql] = cls.state_machine.execute_sql
-
-        if params and not isinstance(params, (list, tuple)):
-            params = [params]
-        # 翻译dynamicSql
-        cls.parseMethodToSql(dynamicSql)
-        res = await cls.exec(params=params, fetch_one=True)
+        try:
+            if cls.cacheSql.get(dynamicSql):
+                return await PPA.exec(
+                    sql=cls.cacheSql.get(dynamicSql), params=params, execOne=True
+                )
+            if params and not isinstance(params, (list, tuple)):
+                params = [params]
+            # 翻译dynamicSql
+            cls.parseMethodToSql(dynamicSql)
+            res = await cls.exec(params=params, fetch_one=True)
+            cls.cacheSql[dynamicSql] = cls.state_machine.execute_sql
+        except Exception as e:
+            print(e)
+            cls.cacheSql[dynamicSql] = ""
         return res
 
     @classmethod
@@ -231,7 +234,7 @@ class LaModel(metaclass=ABCMeta):
         if res:
             for key, _ in cls.dictMap.items():
                 setattr(cls, key, res.get(key))
-        return cls
+        return res
 
     @classmethod
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
@@ -331,29 +334,32 @@ def table(_table_name: str = None):
 
 
 def sql(func):
-    sig = inspect.signature(func)
-    return_annotation = sig.return_annotation
-
-    def wrapper(*args, **kwargs):
-        # 获取方法名和参数
-        method_name = func.__name__
+    def wrapper(cls, *args, **kwargs):
         method_cache_name = func.__qualname__
         params = [str(arg) for arg in args]
-        print(params, method_name, method_cache_name)
+        if cls.cacheSql.get(method_cache_name):
+            return PPA.exec(
+                sql=cls.cacheSql.get(method_cache_name), params=params, execOne=True
+            )
 
-        # 检查并处理返回类型
+        # 获取方法名和参数
+        method_name = func.__name__
+        if not method_name.startswith("select"):
+            raise ValueError(
+                f"Unsupported SQL operation for method: {method_name},because only support select methods"
+            )
 
-        print(
-            f"Method '{method_name}' has a return type annotation of: {return_annotation}"
-        )
+        # 根据return_annotation返回对应类型的值,比如列表处理为列表,单个处理单个对象
+        sig = inspect.signature(func)
+        return_annotation = sig.return_annotation
+        fetch_one = True
+        if callable(return_annotation):
+            fetch_one = False
 
-        # 翻译方法成SQL语句
-        if method_name == "selectByAccountAndPassword":
-            # 这里模拟根据return_annotation返回对应类型的值,比如列表处理为列表,单个处理单个对象
-            # todo 后期优化为从对象内部的局部map获取类定义，然后用反射创建对象
-
-            return params[1:]
-        raise ValueError(f"Unsupported SQL operation for method: {method_name}")
+        LaModel.parseMethodToSql(method_name)
+        res = LaModel.exec(params=params, fetch_one=fetch_one)
+        cls.cacheSql[method_cache_name] = cls.state_machine.execute_sql
+        return res
 
     # 转换为类方法并返回
     return classmethod(wrapper)
