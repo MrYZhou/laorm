@@ -1,0 +1,1 @@
+del  ./dist/*  && poetry build --format=sdist && python -m twine upload dist/*
