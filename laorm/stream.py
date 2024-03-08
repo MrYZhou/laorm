@@ -231,10 +231,7 @@ class LaModel(metaclass=ABCMeta):
         cls.state_machine.mode = "select"
         if primaryId:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
-        res = await cls.exec(True)
-        if res:
-            for key, _ in cls.dictMap.items():
-                setattr(cls, key, res.get(key))
+        res,_ = await cls.exec(True)
         return res
 
     @classmethod
@@ -243,7 +240,8 @@ class LaModel(metaclass=ABCMeta):
             cls.state_machine.process_keyword(
                 "where", f"{cls.primaryKey} in {primaryIdList}"
             )
-        return await cls.exec()
+        res,_ = await cls.exec()
+        return res
 
     @classmethod
     async def post(cls: type[T], data: T | list[T] = None):
