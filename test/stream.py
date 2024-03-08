@@ -298,8 +298,7 @@ class LaModel(metaclass=ABCMeta):
         执行sql fetch_one true是返回单条数据,fetch_many是返回列表数据
         """
         sql = cls.state_machine.finalize()
-        if PPA.showMode:
-            print(sql)
+        
         res = await PPA.exec(sql, params, fetch_one)
         return res
 
