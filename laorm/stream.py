@@ -145,7 +145,7 @@ class LaModel(metaclass=ABCMeta):
         params是sql参数值
         """
         try:
-            if cls.cacheSql.get(dynamicSql):
+            if cls.cacheSql.get(cls.tablename +"-"+ dynamicSql):
                 return await PPA.exec(
                     sql=cls.cacheSql.get(dynamicSql), params=params, execOne=True
                 )
@@ -154,10 +154,10 @@ class LaModel(metaclass=ABCMeta):
             # 翻译dynamicSql
             cls.parseMethodToSql(dynamicSql)
             res = await cls.exec(params=params, fetch_one=True)
-            cls.cacheSql[dynamicSql] = cls.state_machine.execute_sql
+            cls.cacheSql[cls.tablename +"-"+dynamicSql] = cls.state_machine.execute_sql
         except Exception as e:
             print(e)
-            cls.cacheSql[dynamicSql] = ""
+            cls.cacheSql[cls.tablename +"-"+dynamicSql] = ""
         return res
 
     @classmethod
