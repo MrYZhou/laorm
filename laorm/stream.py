@@ -145,7 +145,7 @@ class LaModel(metaclass=ABCMeta):
         params是sql参数值
         """
         try:
-            if cls.cacheSql.get(cls.tablename +"-"+ dynamicSql):
+            if cls.cacheSql.get(dynamicSql):
                 return await PPA.exec(
                     sql=cls.cacheSql.get(dynamicSql), params=params, execOne=True
                 )
@@ -153,11 +153,11 @@ class LaModel(metaclass=ABCMeta):
                 params = [params]
             # 翻译dynamicSql
             cls.parseMethodToSql(dynamicSql)
-            res = await cls.exec(params=params, fetch_one=True)
-            cls.cacheSql[cls.tablename +"-"+dynamicSql] = cls.state_machine.execute_sql
+            res,sql = await cls.exec(params=params, fetch_one=True)
+            cls.cacheSql[dynamicSql] = sql
         except Exception as e:
             print(e)
-            cls.cacheSql[cls.tablename +"-"+dynamicSql] = ""
+            cls.cacheSql[dynamicSql] = ""
         return res
 
     @classmethod
@@ -302,7 +302,7 @@ class LaModel(metaclass=ABCMeta):
         if PPA.showMode:
             print(sql)
         res = await PPA.exec(sql, params, fetch_one)
-        return res
+        return res,sql
 
 
 class FieldDescriptor:
@@ -335,12 +335,12 @@ def table(_table_name: str = None):
 
 
 def sql(func):
-    def wrapper(cls, *args, **kwargs):
+    async def wrapper(cls, *args, **kwargs):
         method_cache_name = func.__qualname__
         params = [str(arg) for arg in args]
         # 缓存上次的查询情况
         if cls.cacheSql.get(method_cache_name):
-            return PPA.exec(
+            return await PPA.exec(
                 sql=cls.cacheSql.get(method_cache_name),
                 params=params,
                 execOne=cls.cacheSqlBatch[method_cache_name],
@@ -361,9 +361,9 @@ def sql(func):
             fetch_one = False
         cls.cacheSqlBatch[method_cache_name] = fetch_one
         LaModel.parseMethodToSql(method_name)
-        res = LaModel.exec(params=params, fetch_one=fetch_one)
-        cls.cacheSql[method_cache_name] = cls.state_machine.execute_sql
+        res,sql = await LaModel.exec(params=params, fetch_one=fetch_one)
+        cls.cacheSql[method_cache_name] = sql
         return res
 
     # 转换为类方法并返回
-    return classmethod(wrapper)
+    return  classmethod(wrapper)
