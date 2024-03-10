@@ -1,6 +1,4 @@
-import re
-
-from stream import FieldDescriptor, SqlStateMachine, table
+from laorm.stream import FieldDescriptor, SqlStateMachine, table
 
 
 @table("user")

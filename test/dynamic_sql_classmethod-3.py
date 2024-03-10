@@ -1,6 +1,6 @@
 from typing import List
 
-from stream import sql
+from laorm.stream import sql
 
 
 class User:

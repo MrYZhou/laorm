@@ -7,5 +7,8 @@ poetry build --format=sdist
 发布
 python -m twine upload dist/*
 
-快捷
+快捷发布
 ./build.bat
+
+先安装在本地调试
+pip install . 

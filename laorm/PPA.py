@@ -31,7 +31,7 @@ class PPA:
     ):
         # sql注入攻击过滤处理
         sql = sql.replace("?", "%s")
-        
+
         if isinstance(params, (dict)):
             # 参数化查询（使用字典）,转元组
             sql = sql.format_map(dict.fromkeys(params.keys(), "%s"))

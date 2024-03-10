@@ -1,4 +1,4 @@
-from stream import SqlStateMachine
+from laorm.stream import SqlStateMachine
 
 state_machine = SqlStateMachine()
 state_machine.process_keyword("select", "username")

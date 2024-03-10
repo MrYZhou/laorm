@@ -153,7 +153,7 @@ class LaModel(metaclass=ABCMeta):
                 params = [params]
             # 翻译dynamicSql
             cls.parseMethodToSql(dynamicSql)
-            res,sql = await cls.exec(params=params, fetch_one=True)
+            res, sql = await cls.exec(params=params, fetch_one=True)
             cls.cacheSql[dynamicSql] = sql
         except Exception as e:
             print(e)
@@ -231,7 +231,7 @@ class LaModel(metaclass=ABCMeta):
         cls.state_machine.mode = "select"
         if primaryId:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
-        res,_ = await cls.exec(True)
+        res, _ = await cls.exec(True)
         return res
 
     @classmethod
@@ -240,7 +240,7 @@ class LaModel(metaclass=ABCMeta):
             cls.state_machine.process_keyword(
                 "where", f"{cls.primaryKey} in {primaryIdList}"
             )
-        res,_ = await cls.exec()
+        res, _ = await cls.exec()
         return res
 
     @classmethod
@@ -298,7 +298,7 @@ class LaModel(metaclass=ABCMeta):
         """
         sql = cls.state_machine.finalize()
         res = await PPA.exec(sql, params, fetch_one)
-        return res,sql
+        return res, sql
 
 
 class FieldDescriptor:
@@ -357,9 +357,9 @@ def sql(func):
             fetch_one = False
         cls.cacheSqlBatch[method_cache_name] = fetch_one
         LaModel.parseMethodToSql(method_name)
-        res,sql = await LaModel.exec(params=params, fetch_one=fetch_one)
+        res, sql = await LaModel.exec(params=params, fetch_one=fetch_one)
         cls.cacheSql[method_cache_name] = sql
         return res
 
     # 转换为类方法并返回
-    return  classmethod(wrapper)
+    return classmethod(wrapper)
