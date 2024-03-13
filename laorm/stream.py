@@ -279,8 +279,7 @@ class LaModel(metaclass=ABCMeta):
             res, _ = await cls.exec(True)
             return res
         finally:
-            SqlStateMachinePool.release(cls.state_machine)
-        
+            state_machine_pool.release(cls.state_machine)
 
     @classmethod
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
