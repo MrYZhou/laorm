@@ -17,7 +17,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-
+# 自定义表名
 @table("config")
 class Config1:
     id: str = FieldDescriptor(primary=True)
@@ -29,6 +29,12 @@ class Config1:
 
     # @sql
     # def selectByName(name:str)->'Config1':pass
+
+# 默认是使用类名小写
+# @table()
+# class Users:
+#     id: str = FieldDescriptor(primary=True)
+#     username: str = FieldDescriptor()
 
 
 # 读取自定义方法的返回类型
@@ -49,8 +55,10 @@ async def getdy():
 # 默认get是查询首个对象, getList自动为数组
 @router.get("/config2/get")
 async def get_config2():
-    res = await Config1.where(name=22).get()
+    res = await Config1().where(name=22).get()
     # res = await Config1.where(name=22).getList()
+
+    # res2 = await Users().where(username="张三").get()
     return AppResult.success(res)
 
 
