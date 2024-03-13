@@ -128,18 +128,6 @@ class SqlStateMachine:
     def finalize(self):
         self.selectMode() and self.postMode() and self.updateMode() and self.deleteMode()
         self.current_state = "final"
-        # self.execute_sql = ""
-        # self.reset()
-        # self.sql_parts = {
-        #     "select": [],
-        #     "from": self.sql_parts["from"],
-        #     "where": [],
-        #     "group_by": [],
-        #     "having": [],
-        #     "field": [],
-        #     "value": [],
-        #     "order_by": [],
-        # }
         return self.execute_sql
 
 
@@ -156,7 +144,7 @@ class SqlStateMachinePool:
                 cls._instance._pool.append(SqlStateMachine())
         return cls._instance
 
-    def __init__(self, max_pool_size=100):
+    def __init__(self, max_pool_size=49):
         self.max_pool_size = max_pool_size
 
     def acquire(self):
