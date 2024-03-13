@@ -8,8 +8,6 @@ from laorm.stream import FieldDescriptor, sql, table
 from laorm.PPA import PPA
 
 
-
-
 from util.exception import exception
 
 from util.response import AppResult
@@ -20,8 +18,6 @@ router = APIRouter(
     tags=["示例代码"],
     responses={404: {"description": "Not found"}},
 )
-
-
 
 
 @table("config")
@@ -56,7 +52,7 @@ async def getdy():
 @router.get("/config2/get")
 @exception
 async def get_config2():
-    cls =  Config1.where(name=22)
+    cls = Config1.where(name=22)
     res = await cls.get()
     # res = await Config1.where(name=22).getList()
     return AppResult.success(res)

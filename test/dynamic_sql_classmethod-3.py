@@ -5,6 +5,7 @@ from laorm import table
 
 from laorm.stream import sql
 
+
 @table
 class User:
     name: str
@@ -16,7 +17,7 @@ class User:
 
 
 # 示例调用
-    
+
 loop = asyncio.get_event_loop()
 # user_count: List[User] = loop.run_until_complete(
 #     User.selectByAccountAndPassword(1, "123")
@@ -24,4 +25,3 @@ loop = asyncio.get_event_loop()
 User.selectByAccountAndPassword(1, "123")
 # 打印结果
 # print(user_count)
-

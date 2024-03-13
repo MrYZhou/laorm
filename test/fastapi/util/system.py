@@ -2,11 +2,8 @@ import importlib
 import os
 import sys
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-
-from fastapi.responses import JSONResponse
 
 from util.PPAFastAPI import PPAFastAPI
 
@@ -53,12 +50,8 @@ class Env:
         PPAFastAPI.init_app(app)
         PPAFastAPI.showSql(True)
 
-  
-
     @staticmethod
     def init(app: FastAPI):
         Env.initDataBase(app)
         Env.initHttp(app)
         Env.initRouter(app)
-
-   

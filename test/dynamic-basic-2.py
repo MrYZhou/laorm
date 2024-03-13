@@ -8,14 +8,9 @@ class User:
     name: str = FieldDescriptor()
 
 
-
 # 测试数据
 loop = asyncio.get_event_loop()
-result = loop.run_until_complete(
-   User.dynamic('selectByAccountAndPassword',[1,2])
-)
+result = loop.run_until_complete(User.dynamic("selectByAccountAndPassword", [1, 2]))
 
 # 打印结果
 print(result)
-
-

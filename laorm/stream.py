@@ -6,6 +6,8 @@ from abc import ABCMeta
 from .PPA import PPA
 
 import threading
+
+
 class SqlStateMachine:
     def __init__(self, *args):
         self.mode = "select"
@@ -122,6 +124,7 @@ class SqlStateMachine:
             "value": [],
             "order_by": [],
         }
+
     def finalize(self):
         self.selectMode() and self.postMode() and self.updateMode() and self.deleteMode()
         self.current_state = "final"
@@ -158,15 +161,17 @@ class SqlStateMachinePool:
 
     def acquire(self):
         with self._lock:
-           return self._pool.pop()
+            return self._pool.pop()
+
     def release(self, state_machine: SqlStateMachine):
         with self._lock:
             if len(self._pool) < self.max_pool_size:
-                state_machine.reset()  
+                state_machine.reset()
                 self._pool.append(state_machine)
+
+
 # 获取单例对象
 state_machine_pool = SqlStateMachinePool()
-
 
 
 T = TypeVar("T", bound="LaModel")
@@ -201,7 +206,7 @@ class LaModel(metaclass=ABCMeta):
             print(e)
             cls.cacheSql[dynamicSql] = ""
         finally:
-            state_machine_pool.release(cls.state_machine)    
+            state_machine_pool.release(cls.state_machine)
         return res
 
     @classmethod
@@ -275,7 +280,9 @@ class LaModel(metaclass=ABCMeta):
         try:
             cls.state_machine.mode = "select"
             if primaryId:
-                cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
+                cls.state_machine.process_keyword(
+                    "where", f"{cls.primaryKey}={primaryId}"
+                )
             res, _ = await cls.exec(True)
             return res
         finally:
