@@ -5,7 +5,7 @@ from abc import ABCMeta
 
 from .PPA import PPA
 
-
+import threading
 class SqlStateMachine:
     def __init__(self, *args):
         self.mode = "select"
@@ -108,12 +108,10 @@ class SqlStateMachine:
         self.execute_sql = f"UPDATE {self.sql_parts['from']} SET {set_clause}"
         self.execute_sql += f" where {' AND '.join(self.sql_parts['where'])}"
 
-    def finalize(self):
+    def reset(self):
+        self.mode = ""
+        self.current_state = "initial"
         self.execute_sql = ""
-
-        self.selectMode() and self.postMode() and self.updateMode() and self.deleteMode()
-
-        self.current_state = "final"
         self.sql_parts = {
             "select": [],
             "from": self.sql_parts["from"],
@@ -124,7 +122,51 @@ class SqlStateMachine:
             "value": [],
             "order_by": [],
         }
+    def finalize(self):
+        self.selectMode() and self.postMode() and self.updateMode() and self.deleteMode()
+        self.current_state = "final"
+        # self.execute_sql = ""
+        # self.reset()
+        # self.sql_parts = {
+        #     "select": [],
+        #     "from": self.sql_parts["from"],
+        #     "where": [],
+        #     "group_by": [],
+        #     "having": [],
+        #     "field": [],
+        #     "value": [],
+        #     "order_by": [],
+        # }
         return self.execute_sql
+
+
+class SqlStateMachinePool:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+            cls._instance.__init__(*args, **kwargs)
+            cls._instance._pool = []
+            cls._instance._lock = threading.Lock()
+            for _ in range(cls._instance.max_pool_size):
+                cls._instance._pool.append(SqlStateMachine())
+        return cls._instance
+
+    def __init__(self, max_pool_size=100):
+        self.max_pool_size = max_pool_size
+
+    def acquire(self):
+        with self._lock:
+           return self._pool.pop()
+    def release(self, state_machine: SqlStateMachine):
+        with self._lock:
+            if len(self._pool) < self.max_pool_size:
+                state_machine.reset()  
+                self._pool.append(state_machine)
+# 获取单例对象
+state_machine_pool = SqlStateMachinePool()
+
 
 
 T = TypeVar("T", bound="LaModel")
@@ -135,7 +177,7 @@ class LaModel(metaclass=ABCMeta):
         self.state_machine.process_keyword("from", self.tablename)
 
     excuteSql = ""
-    state_machine = SqlStateMachine()
+    state_machine = state_machine_pool.acquire()
     cacheSql = {}
     cacheSqlBatch = {}
 
@@ -158,6 +200,8 @@ class LaModel(metaclass=ABCMeta):
         except Exception as e:
             print(e)
             cls.cacheSql[dynamicSql] = ""
+        finally:
+            state_machine_pool.release(cls.state_machine)    
         return res
 
     @classmethod
@@ -228,11 +272,15 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     async def get(cls: type[T], primaryId: int | str = None) -> T:
-        cls.state_machine.mode = "select"
-        if primaryId:
-            cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
-        res, _ = await cls.exec(True)
-        return res
+        try:
+            cls.state_machine.mode = "select"
+            if primaryId:
+                cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
+            res, _ = await cls.exec(True)
+            return res
+        finally:
+            SqlStateMachinePool.release(cls.state_machine)
+        
 
     @classmethod
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
