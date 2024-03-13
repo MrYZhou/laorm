@@ -1,4 +1,5 @@
-from laorm.stream import FieldDescriptor, SqlStateMachine, table
+import asyncio
+from laorm.stream import FieldDescriptor, table
 
 
 @table("user")
@@ -7,14 +8,14 @@ class User:
     name: str = FieldDescriptor()
 
 
-state_machine = SqlStateMachine()
-state_machine.process_keyword("from", "user")
-
 
 # 测试数据
-combined_input = "selectByAccountAndPassword"
-result = User.parseMethodToSql(combined_input)
-state_machine.finalize()
-print(state_machine.execute_sql)
+loop = asyncio.get_event_loop()
+result = loop.run_until_complete(
+   User.dynamic('selectByAccountAndPassword',[1,2])
+)
 
-# parsql 完成后得到查询字符串然后只要直接用ppa执行exec即可
+# 打印结果
+print(result)
+
+
