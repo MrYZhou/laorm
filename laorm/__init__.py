@@ -1,4 +1,4 @@
-__version__ = "1.8.3"
+__version__ = "1.9.0"
 
 from .PPA import PPA as PPA
 from .stream import LaModel, FieldDescriptor, table, sql
