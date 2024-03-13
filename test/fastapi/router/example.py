@@ -8,8 +8,6 @@ from laorm.stream import FieldDescriptor, sql, table
 from laorm.PPA import PPA
 
 
-from util.exception import exception
-
 from util.response import AppResult
 
 
@@ -50,7 +48,6 @@ async def getdy():
 
 # 默认get是查询首个对象, getList自动为数组
 @router.get("/config2/get")
-@exception
 async def get_config2():
     cls = Config1.where(name=22)
     res = await cls.get()

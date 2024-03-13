@@ -165,9 +165,9 @@ class SqlStateMachinePool:
 
     def release(self, state_machine: SqlStateMachine):
         with self._lock:
-            if len(self._pool) < self.max_pool_size:
-                state_machine.reset()
-                self._pool.append(state_machine)
+            state_machine.reset()
+            self._pool.append(state_machine)
+                
 
 
 # 获取单例对象
