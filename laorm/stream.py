@@ -111,7 +111,7 @@ class SqlStateMachine:
         self.execute_sql += f" where {' AND '.join(self.sql_parts['where'])}"
 
     def reset(self):
-        self.mode = ""
+        self.mode = "select"
         self.current_state = "initial"
         self.execute_sql = ""
         self.sql_parts = {
@@ -155,7 +155,6 @@ class SqlStateMachinePool:
         with self._lock:
             state_machine.reset()
             self._pool.append(state_machine)
-                
 
 
 # 获取单例对象
@@ -265,16 +264,10 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     async def get(cls: type[T], primaryId: int | str = None) -> T:
-        try:
-            cls.state_machine.mode = "select"
-            if primaryId:
-                cls.state_machine.process_keyword(
-                    "where", f"{cls.primaryKey}={primaryId}"
-                )
-            res, _ = await cls.exec(True)
-            return res
-        finally:
-            state_machine_pool.release(cls.state_machine)
+        if primaryId:
+            cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
+        res, _ = await cls.exec(True)
+        return res
 
     @classmethod
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
@@ -338,9 +331,12 @@ class LaModel(metaclass=ABCMeta):
         """
         执行sql fetch_one true是返回单条数据,fetch_many是返回列表数据
         """
-        sql = cls.state_machine.finalize()
-        res = await PPA.exec(sql, params, fetch_one)
-        return res, sql
+        try:
+            sql = cls.state_machine.finalize()
+            res = await PPA.exec(sql, params, fetch_one)
+            return res, sql
+        finally:
+            state_machine_pool.release(cls.state_machine)
 
 
 class FieldDescriptor:
