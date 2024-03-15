@@ -55,7 +55,7 @@ async def getdy():
 # 默认get是查询首个对象, getList自动为数组
 @router.get("/config2/get")
 async def get_config2():
-    res = await Config1().where(name=22).get()
+    res = await Config1.where(name=22).get()
     # res = await Config1.where(name=22).getList()
 
     # res2 = await Users().where(username="张三").get()

@@ -165,8 +165,9 @@ T = TypeVar("T", bound="LaModel")
 
 
 class LaModel(metaclass=ABCMeta):
-    def __init_subclass__(self) -> None:
-        self.state_machine.process_keyword("from", self.tablename)
+    def __init_subclass__(self,*args) -> None:
+        # self.state_machine.process_keyword("from", args.tablename)
+        pass
 
     excuteSql = ""
     state_machine = state_machine_pool.acquire()
