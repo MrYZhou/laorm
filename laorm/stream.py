@@ -155,6 +155,7 @@ class SqlStateMachinePool:
         with self._lock:
             state_machine.reset()
             self._pool.append(state_machine)
+                
 
 
 # 获取单例对象
@@ -165,9 +166,8 @@ T = TypeVar("T", bound="LaModel")
 
 
 class LaModel(metaclass=ABCMeta):
-    def __init_subclass__(self,*args) -> None:
-        # self.state_machine.process_keyword("from", args.tablename)
-        pass
+    def __init_subclass__(self) -> None:
+        self.state_machine.process_keyword("from", self.tablename)
 
     excuteSql = ""
     state_machine = state_machine_pool.acquire()
