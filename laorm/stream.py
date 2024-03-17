@@ -165,11 +165,6 @@ T = TypeVar("T", bound="LaModel")
 
 
 class LaModel(metaclass=ABCMeta):
-    # def __init_subclass__(self) -> None:
-
-    #     pass
-    # self.state_machineMap[self.tablename] = state_machine_pool.acquire()
-    # self.state_machineMap[self.tablename].state_machine.process_keyword("from", self.tablename)
     excuteSql = ""
     state_machineMap = {}
     state_machine = state_machine_pool.acquire()
@@ -182,22 +177,22 @@ class LaModel(metaclass=ABCMeta):
         params是sql参数值
         """
         try:
-            if cls.cacheSql.get(dynamicSql):
-                return await PPA.exec(
-                    sql=cls.cacheSql.get(dynamicSql), params=params, execOne=True
-                )
             if params and not isinstance(params, (list, tuple)):
                 params = [params]
+            if cls.cacheSql.get(dynamicSql):
+                return await PPA.exec(
+                    sql=cls.cacheSql.get(dynamicSql), params=params, execOne=False
+                )
             # 翻译dynamicSql
             cls.parseMethodToSql(dynamicSql)
             res, sql = await cls.exec(params=params, fetch_one=True)
             cls.cacheSql[dynamicSql] = sql
+            return res
         except Exception as e:
             print(e)
             cls.cacheSql[dynamicSql] = ""
         finally:
             state_machine_pool.release(cls.state_machine)
-        return res
 
     @classmethod
     def parseMethodToSql(cls: type[T], dynamicSql: str):
@@ -359,22 +354,9 @@ class FieldDescriptor:
 
 
 # 装饰器
-
-
-class TableMixin(LaModel):
-    def __init_subclass__(cls, table_name: str = None, **kwargs):
-        super().__init_subclass__(**kwargs)
-        cls.tablename = table_name if table_name else cls.__name__.lower()
-
-    def __init__(self, *args, **kwargs):
-        self.state_machine = state_machine_pool.acquire()
-        self.state_machine.process_keyword("from", self.__class__.tablename)
-        super().__init__(*args, **kwargs)
-
-
 def table(table_name: str = None):
     def wrapper(cls):
-        class DecoratedModel(cls, TableMixin):
+        class DecoratedModel(cls, LaModel):
             pass
 
         DecoratedModel.tablename = (
@@ -412,7 +394,7 @@ def sql(func):
             fetch_one = False
         cls.cacheSqlBatch[method_cache_name] = fetch_one
         LaModel.parseMethodToSql(method_name)
-        res, sql = await LaModel.exec(params=params, fetch_one=fetch_one)
+        res, sql = await cls.exec(params=params, fetch_one=fetch_one)
         cls.cacheSql[method_cache_name] = sql
         return res
 
