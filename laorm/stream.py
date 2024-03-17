@@ -155,7 +155,6 @@ class SqlStateMachinePool:
         with self._lock:
             state_machine.reset()
             self._pool.append(state_machine)
-                
 
 
 # 获取单例对象
@@ -166,10 +165,13 @@ T = TypeVar("T", bound="LaModel")
 
 
 class LaModel(metaclass=ABCMeta):
-    def __init_subclass__(self) -> None:
-        self.state_machine.process_keyword("from", self.tablename)
+    # def __init_subclass__(self) -> None:
 
+    #     pass
+    # self.state_machineMap[self.tablename] = state_machine_pool.acquire()
+    # self.state_machineMap[self.tablename].state_machine.process_keyword("from", self.tablename)
     excuteSql = ""
+    state_machineMap = {}
     state_machine = state_machine_pool.acquire()
     cacheSql = {}
     cacheSqlBatch = {}
@@ -232,6 +234,8 @@ class LaModel(metaclass=ABCMeta):
 
         Config.where(name='admin')
         """
+        if not cls.state_machine:
+            cls.state_machine = state_machine_pool.acquire()
         for key, value in kwargs.items():
             cls.state_machine.process_keyword("where", f"{key}={value}")
         return cls
@@ -265,14 +269,14 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     async def get(cls: type[T], primaryId: int | str = None) -> T:
-        if primaryId:
+        if primaryId is not None:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
         res, _ = await cls.exec(True)
         return res
 
     @classmethod
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
-        if primaryIdList:
+        if primaryIdList is not None:
             cls.state_machine.process_keyword(
                 "where", f"{cls.primaryKey} in {primaryIdList}"
             )
@@ -333,6 +337,7 @@ class LaModel(metaclass=ABCMeta):
         执行sql fetch_one true是返回单条数据,fetch_many是返回列表数据
         """
         try:
+            cls.state_machine.process_keyword("from", cls.tablename)
             sql = cls.state_machine.finalize()
             res = await PPA.exec(sql, params, fetch_one)
             return res, sql
@@ -354,16 +359,27 @@ class FieldDescriptor:
 
 
 # 装饰器
-def table(_table_name: str = None):
+
+
+class TableMixin(LaModel):
+    def __init_subclass__(cls, table_name: str = None, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.tablename = table_name if table_name else cls.__name__.lower()
+
+    def __init__(self, *args, **kwargs):
+        self.state_machine = state_machine_pool.acquire()
+        self.state_machine.process_keyword("from", self.__class__.tablename)
+        super().__init__(*args, **kwargs)
+
+
+def table(table_name: str = None):
     def wrapper(cls):
-        class DecoratedModel(LaModel, cls):
-            # 将表名存储到类属性中
-            tablename = _table_name if _table_name else cls.__name__.lower()
+        class DecoratedModel(cls, TableMixin):
+            pass
 
-            def __init_subclass__(cls) -> None:
-                # 初始化内容
-                return super().__init_subclass__()
-
+        DecoratedModel.tablename = (
+            table_name if table_name is not None else cls.__name__.lower()
+        )
         return DecoratedModel
 
     return wrapper

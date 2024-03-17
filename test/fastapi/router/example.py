@@ -17,6 +17,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 # 自定义表名
 @table("config")
 class Config1:
@@ -29,6 +30,7 @@ class Config1:
 
     # @sql
     # def selectByName(name:str)->'Config1':pass
+
 
 # 默认是使用类名小写
 # @table()
