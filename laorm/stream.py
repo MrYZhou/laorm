@@ -272,7 +272,7 @@ class LaModel(metaclass=ABCMeta):
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
         if primaryIdList is not None:
             cls.state_machine.process_keyword(
-                "where", f"{cls.primaryKey} in {tuple(primaryIdList)}"
+                "where", f"{cls.primaryKey} in {({', '.join(map(str, primaryIdList))})}"
             )
         res, _ = await cls.exec()
         return res
@@ -320,7 +320,11 @@ class LaModel(metaclass=ABCMeta):
         """
         cls.state_machine.mode = "delete"
 
-        if primaryId:
+        if isinstance(primaryId, list) and primaryId != []:
+            cls.state_machine.process_keyword(
+                "where", f"{cls.primaryKey} in ({', '.join(map(str, primaryId))})"
+            )
+        else:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
         await cls.exec(True)
         return cls
