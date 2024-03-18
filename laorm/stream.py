@@ -166,7 +166,6 @@ T = TypeVar("T", bound="LaModel")
 
 class LaModel(metaclass=ABCMeta):
     excuteSql = ""
-    state_machineMap = {}
     state_machine = state_machine_pool.acquire()
     cacheSql = {}
     cacheSqlBatch = {}
@@ -273,7 +272,7 @@ class LaModel(metaclass=ABCMeta):
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
         if primaryIdList is not None:
             cls.state_machine.process_keyword(
-                "where", f"{cls.primaryKey} in {primaryIdList}"
+                "where", f"{cls.primaryKey} in {tuple(primaryIdList)}"
             )
         res, _ = await cls.exec()
         return res
@@ -357,7 +356,9 @@ class FieldDescriptor:
 def table(table_name: str = None):
     def wrapper(cls):
         class DecoratedModel(cls, LaModel):
-            pass
+            @sql
+            def selectById(id: str | int) -> T:
+                pass
 
         DecoratedModel.tablename = (
             table_name if table_name is not None else cls.__name__.lower()
