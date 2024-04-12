@@ -56,8 +56,8 @@ async def getdy():
 # 分页查询
 @router.post("/config2/page")
 async def body(page=Body(Page)):
-    list = await Config1.where(name=22).page(page)
-    return AppResult.success(list)
+    data = await Config1.where(name=22).page(page)
+    return AppResult.success(data)
 
 
 # 默认get是查询首个对象, getList自动为数组

@@ -289,10 +289,21 @@ class LaModel(metaclass=ABCMeta):
         size = page.get("size")
         pageIndex = (pageIndex - 1) * size
         cls.state_machine.process_keyword("limit", f"limit {pageIndex},{size}")
-        res, _ = await cls.exec()
+        res, sql = await cls.exec()
+        pageData = {
+            "list": res,
+        }
+        # 定义正则表达式模式，匹配"SELECT *"和"FROM"之间的任何字符（包括换行符）
+        countSql = re.sub(r"(?i)SELECT .* FROM", "count(*) from", sql)
+        countSql = f"select {countSql.split("limit")[0]}"
+        total = await PPA.exec(sql=countSql, execOne=True)
         # 封装新page
-
-        return res
+        pageData["page"] = {
+            "total": total.get("count(*)"),
+            "page": page.get("page"),
+            "size": size,
+        }
+        return pageData
 
     @classmethod
     async def post(cls: type[T], data: T | list[T] = None):
