@@ -11,10 +11,11 @@ repository = "https://github.com/mryzhou/laorm.git"  # 可选，指定项目仓�
 [tool.poetry.dependencies]
 python = "^3.10"
 aiomysql = "*"
-
+cryptography = "^42.0.5" # aiomysql 密码认证依赖
 [tool.poetry.dev-dependencies]
 fastapi = "^0.110.0"  # 更改为最新稳定版的FastAPI
 uvicorn = {extras = ["standard"], version = "^0.27.1"}  # 或者使用最新稳定版Uvicorn
+
 
 [tool.poetry.extras]
 fastapi = ["fastapi"]

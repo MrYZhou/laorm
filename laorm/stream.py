@@ -33,6 +33,7 @@ class SqlStateMachine:
             "group_by": [],
             "having": [],
             "order_by": [],
+            "limit": [],
         }
 
     def process_keyword(self, keyword, value=None):
@@ -61,6 +62,8 @@ class SqlStateMachine:
             self.current_state = "by"
         elif keyword == "insertField":
             self.sql_parts["field"].append(value)
+        elif keyword == "limit":
+            self.sql_parts["limit"].append(value)
         elif keyword == "insertValue":
             self.sql_parts["value"].append(value)
 
@@ -80,6 +83,8 @@ class SqlStateMachine:
             execute_sql += f"having {' AND '.join(self.sql_parts['having'])} "
         if self.sql_parts["order_by"]:
             execute_sql += f"ORDER by {' ,'.join(self.sql_parts['order_by'])} "
+        if len(self.sql_parts["limit"]):
+            execute_sql += f"{self.sql_parts['limit'][0]}"
         self.execute_sql = execute_sql
 
     def postMode(self):
@@ -123,6 +128,7 @@ class SqlStateMachine:
             "field": [],
             "value": [],
             "order_by": [],
+            "limit": []
         }
 
     def finalize(self):
@@ -275,6 +281,17 @@ class LaModel(metaclass=ABCMeta):
                 "where", f"{cls.primaryKey} in {({', '.join(map(str, primaryIdList))})}"
             )
         res, _ = await cls.exec()
+        return res
+
+    @classmethod
+    async def page(cls: type[T], page: dict) -> T:
+        pageIndex = page.get("page")
+        size = page.get("size")
+        pageIndex = (pageIndex - 1) * size
+        cls.state_machine.process_keyword("limit", f"limit {pageIndex},{size}")
+        res, _ = await cls.exec()
+        # 封装新page
+
         return res
 
     @classmethod

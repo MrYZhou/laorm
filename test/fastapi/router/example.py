@@ -1,7 +1,7 @@
 import asyncio
 import time
 from typing import List
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
 
 
 from laorm.stream import FieldDescriptor, sql, table
@@ -9,6 +9,7 @@ from laorm.PPA import PPA
 
 
 from util.response import AppResult
+from models.example.input import Page
 
 
 router = APIRouter(
@@ -52,6 +53,11 @@ async def getdy():
     res = await Config1.dynamic("selectByIdAndName", [2, 456])
     # res = await Config1.dynamic('selectByName',123)
     return AppResult.success(res)
+# 分页查询
+@router.post("/config2/page")
+async def body(page=Body(Page)):
+    list = await Config1.where(name=22).page(page)
+    return AppResult.success(list)
 
 
 # 默认get是查询首个对象, getList自动为数组
