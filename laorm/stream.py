@@ -90,9 +90,12 @@ class SqlStateMachine:
     def postMode(self):
         if self.mode != "post":
             return True
-        values_str_list = [
-            f"({', '.join(map(str, row))})" for row in self.sql_parts["value"]
-        ]
+        values_str_list = []
+        for row in self.sql_parts["value"]:
+            seg= []
+            for field in row:
+                seg.append(f"'{field}'") 
+            values_str_list.append(f"({', '.join(seg)})")
 
         # 合并成一条INSERT语句
         self.execute_sql = f"INSERT INTO {self.sql_parts['from']} ({', '.join(self.sql_parts['field'])}) VALUES {', '.join(values_str_list)};"
@@ -237,7 +240,7 @@ class LaModel(metaclass=ABCMeta):
         if not cls.state_machine:
             cls.state_machine = state_machine_pool.acquire()
         for key, value in kwargs.items():
-            cls.state_machine.process_keyword("where", f"{key}={value}")
+            cls.state_machine.process_keyword("where", f"{key}='{value}'")
         return cls
 
     @classmethod
@@ -254,7 +257,7 @@ class LaModel(metaclass=ABCMeta):
 
         # 使用zip将键和值配对，然后通过列表推导式生成条件子句并调用process_keyword方法
         for key, value in zip(*[iter(args)] * 2):
-            cls.state_machine.process_keyword("where", f"{key}={value}")
+            cls.state_machine.process_keyword("where", f"{key}{value}")
         return cls
 
     @classmethod
