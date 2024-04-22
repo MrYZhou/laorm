@@ -58,15 +58,21 @@ async def getdy():
 async def body(page=Body(Page)):
     data = await Config1.where(name=22).page(page)
     return AppResult.success(data)
-
+@router.get("/config2/getdy3")
+async def getdy3():
+    res:Config1 = await Config1.selectById(1)
+    return AppResult.success(res)
+@table()
+class Users:
+    id: str = FieldDescriptor(primary=True)
+    username: str = FieldDescriptor()
 
 # 默认get是查询首个对象, getList自动为数组
 @router.get("/config2/get")
 async def get_config2():
     res = await Config1.where(name=22).get()
-    # res = await Config1.where(name=22).getList()
-
-    # res2 = await Users().where(username="张三").get()
+    res = await Users.get(407)
+    res = await Config1.where(name=22).getList([1,2,3])
     return AppResult.success(res)
 
 
