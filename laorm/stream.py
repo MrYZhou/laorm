@@ -298,11 +298,13 @@ class LaModel(metaclass=ABCMeta):
         }
         # 定义正则表达式模式，匹配"SELECT *"和"FROM"之间的任何字符（包括换行符）
         countSql = re.sub(r"(?i)SELECT .* FROM", "count(*) from", sql)
-        countSql = f"select {countSql.split("limit")[0]}"
+        fields = countSql.split("limit")[0]
+        countSql = f"select {fields}"
         total = await PPA.exec(sql=countSql, execOne=True)
+        totalNum = total.get("count(*)") if total else 0
         # 封装新page
         pageData["page"] = {
-            "total": total.get("count(*)"),
+            "total": totalNum,
             "page": page.get("page"),
             "size": size,
         }
