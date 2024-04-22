@@ -315,13 +315,14 @@ class LaModel(metaclass=ABCMeta):
         cls.state_machine.mode = "post"
         if data and not isinstance(data, (list, tuple)):
             data = [data]
-
-        for key, _ in cls.dictMap.items():
-            cls.state_machine.process_keyword("insertField", key)
         for item in data:
-            cls.state_machine.process_keyword(
-                "insertValue", [getattr(item, key) for key, _ in cls.dictMap.items()]
-            )
+           validKey = [key for key, _ in cls.dictMap.items() if not isinstance(getattr(item, key), FieldDescriptor)]            
+        for key, _ in cls.dictMap.items():
+            if key in validKey:
+                cls.state_machine.process_keyword("insertField", key)
+        for item in data:
+            cls.state_machine.process_keyword("insertValue",
+                [getattr(item, key) for key, _ in cls.dictMap.items() if key in validKey])
         return await cls.exec(True)
 
     @classmethod
