@@ -356,7 +356,7 @@ class LaModel(metaclass=ABCMeta):
 
         if isinstance(primaryId, list) and primaryId != []:
             cls.state_machine.process_keyword(
-                "where", f"{cls.primaryKey} in ({', '.join(map(str, primaryId))})"
+                "where", f"{cls.primaryKey} in ({", ".join(map(lambda id: f"'{id}'", primaryId))})"
             )
         else:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
