@@ -355,8 +355,10 @@ class LaModel(metaclass=ABCMeta):
         cls.state_machine.mode = "delete"
 
         if isinstance(primaryId, list) and primaryId != []:
+            # python3.12以下不支持嵌套f字符串
+            ids = ", ".join(map(lambda id: f"'{id}'", primaryId))
             cls.state_machine.process_keyword(
-                "where", f"{cls.primaryKey} in ({", ".join(map(lambda id: f"'{id}'", primaryId))})"
+                "where", f"{cls.primaryKey} in ({ids})"
             )
         else:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
