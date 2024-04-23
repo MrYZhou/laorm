@@ -1,3 +1,7 @@
 {
-  "python.analysis.extraPaths": ["test", "./core"]
+  "python.analysis.extraPaths": ["test", "./core"],
+  "search.exclude": {},
+  "files.exclude": {
+    "**/__init__.py": true
+  }
 }
