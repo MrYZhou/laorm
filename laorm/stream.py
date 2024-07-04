@@ -92,9 +92,9 @@ class SqlStateMachine:
             return True
         values_str_list = []
         for row in self.sql_parts["value"]:
-            seg= []
+            seg = []
             for field in row:
-                seg.append(f"'{field}'") 
+                seg.append(f"'{field}'")
             values_str_list.append(f"({', '.join(seg)})")
 
         # 合并成一条INSERT语句
@@ -131,7 +131,7 @@ class SqlStateMachine:
             "field": [],
             "value": [],
             "order_by": [],
-            "limit": []
+            "limit": [],
         }
 
     def finalize(self):
@@ -316,13 +316,23 @@ class LaModel(metaclass=ABCMeta):
         if data and not isinstance(data, (list, tuple)):
             data = [data]
         for item in data:
-           validKey = [key for key, _ in cls.dictMap.items() if not isinstance(getattr(item, key), FieldDescriptor)]            
+            validKey = [
+                key
+                for key, _ in cls.dictMap.items()
+                if not isinstance(getattr(item, key), FieldDescriptor)
+            ]
         for key, _ in cls.dictMap.items():
             if key in validKey:
                 cls.state_machine.process_keyword("insertField", key)
         for item in data:
-            cls.state_machine.process_keyword("insertValue",
-                [getattr(item, key) for key, _ in cls.dictMap.items() if key in validKey])
+            cls.state_machine.process_keyword(
+                "insertValue",
+                [
+                    getattr(item, key)
+                    for key, _ in cls.dictMap.items()
+                    if key in validKey
+                ],
+            )
         return await cls.exec(True)
 
     @classmethod
@@ -357,9 +367,7 @@ class LaModel(metaclass=ABCMeta):
         if isinstance(primaryId, list) and primaryId != []:
             # python3.12以下不支持嵌套f字符串
             ids = ", ".join(map(lambda id: f"'{id}'", primaryId))
-            cls.state_machine.process_keyword(
-                "where", f"{cls.primaryKey} in ({ids})"
-            )
+            cls.state_machine.process_keyword("where", f"{cls.primaryKey} in ({ids})")
         else:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
         await cls.exec(True)

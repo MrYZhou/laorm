@@ -53,26 +53,33 @@ async def getdy():
     res = await Config1.dynamic("selectByIdAndName", [2, 456])
     # res = await Config1.dynamic('selectByName',123)
     return AppResult.success(res)
+
+
 # 分页查询
 @router.post("/config2/page")
 async def body(page=Body(Page)):
     data = await Config1.where(name=22).page(page)
     return AppResult.success(data)
+
+
 @router.get("/config2/getdy3")
 async def getdy3():
-    res:Config1 = await Config1.selectById(1)
+    res: Config1 = await Config1.selectById(1)
     return AppResult.success(res)
+
+
 @table()
 class Users:
     id: str = FieldDescriptor(primary=True)
     username: str = FieldDescriptor()
+
 
 # 默认get是查询首个对象, getList自动为数组
 @router.get("/config2/get")
 async def get_config2():
     res = await Config1.where(name=22).get()
     res = await Users.get(407)
-    res = await Config1.where(name=22).getList([1,2,3])
+    res = await Config1.where(name=22).getList([1, 2, 3])
     return AppResult.success(res)
 
 

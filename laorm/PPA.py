@@ -36,11 +36,11 @@ class PPA:
             # 参数化查询（使用字典）,转元组
             sql = sql.format_map(dict.fromkeys(params.keys(), "%s"))
             params = tuple(params.values())
-        if  PPA.showMode:
+        if PPA.showMode:
             if params:
                 print(sql.replace("%s", "{}").format(*params))
             else:
-                print(sql)    
+                print(sql)
         try:
             async with cls.pool.acquire() as conn:
                 async with conn.cursor(aiomysql.DictCursor) as cur:
