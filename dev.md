@@ -1,5 +1,7 @@
+pip install ruff (如果没安装ruff)
+
 提交执行格式化
-ruff format .
+ruff format . 
 
 在本地调试安装测试
 pip install . 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "laorm"
-version = "2.7.0"
+version = "2.8.0"
 description = "A python async orm tool"
 authors = ["larry <176286171@qq.com>"]
 license = "Apache-2.0"
@@ -15,7 +15,7 @@ cryptography = "^42.0.5" # aiomysql 密码认证依赖
 [tool.poetry.dev-dependencies]
 fastapi = "^0.110.0"  # 更改为最新稳定版的FastAPI
 uvicorn = {extras = ["standard"], version = "^0.27.1"}  # 或者使用最新稳定版Uvicorn
-
+pydantic = "^2.7.4"
 
 [tool.poetry.extras]
 fastapi = ["fastapi"]

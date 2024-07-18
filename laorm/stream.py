@@ -6,6 +6,7 @@ from abc import ABCMeta
 from .PPA import PPA
 
 import threading
+from pydantic import BaseModel
 
 
 class SqlStateMachine:
@@ -312,6 +313,7 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     async def post(cls: type[T], data: T | list[T] = None):
+        """新增一个或多个数据"""
         cls.state_machine.mode = "post"
         if data and not isinstance(data, (list, tuple)):
             data = [data]
@@ -403,7 +405,7 @@ class FieldDescriptor:
 # 装饰器
 def table(table_name: str = None):
     def wrapper(cls):
-        class DecoratedModel(cls, LaModel):
+        class DecoratedModel(cls, LaModel, BaseModel):
             @sql
             def selectById(id: str | int) -> T:
                 pass
