@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "laorm"
-version = "2.8.0"
+version = "2.9.0"
 description = "A python async orm tool"
 authors = ["larry <176286171@qq.com>"]
 license = "Apache-2.0"

@@ -183,7 +183,10 @@ class LaModel(metaclass=ABCMeta):
     @classmethod
     async def dynamic(cls: type[T], dynamicSql: str, params: str | list = None):
         """
-        params是sql参数值
+        动态执行sql
+
+        dynamicSql: sql语句
+        params: sql参数值
         """
         try:
             if params and not isinstance(params, (list, tuple)):
@@ -273,6 +276,9 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     async def get(cls: type[T], primaryId: int | str = None) -> T:
+        '''
+        获取单个对象
+        '''
         if primaryId is not None:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
         res, _ = await cls.exec(True)
@@ -280,6 +286,9 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
+        '''
+        获取多个对象
+        '''
         if primaryIdList is not None:
             cls.state_machine.process_keyword(
                 "where", f"{cls.primaryKey} in {tuple(primaryIdList)}"
