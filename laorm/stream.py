@@ -114,7 +114,10 @@ class SqlStateMachine:
 
         data_dict = dict(zip(self.sql_parts["field"], self.sql_parts["value"]))
         set_clause = ", ".join(
-            [f"{key} = '{value.replace("'", "\\'").replace('"','\\"')}'" for key, value in data_dict.items()]
+            [
+                f"{key} = '{value.replace("'", "\\'").replace('"','\\"')}'"
+                for key, value in data_dict.items()
+            ]
         )
         self.execute_sql = f"UPDATE {self.sql_parts['from']} SET {set_clause}"
         self.execute_sql += f" where {' AND '.join(self.sql_parts['where'])}"
@@ -276,9 +279,9 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     async def get(cls: type[T], primaryId: int | str = None) -> T:
-        '''
+        """
         获取单个对象
-        '''
+        """
         if primaryId is not None:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
         res, _ = await cls.exec(True)
@@ -286,9 +289,9 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
-        '''
+        """
         获取多个对象
-        '''
+        """
         if primaryIdList is not None:
             cls.state_machine.process_keyword(
                 "where", f"{cls.primaryKey} in {tuple(primaryIdList)}"
@@ -364,9 +367,7 @@ class LaModel(metaclass=ABCMeta):
                 if not item.get(key):
                     continue
                 cls.state_machine.process_keyword("insertField", key)
-                cls.state_machine.process_keyword(
-                    "insertValue", str(item.get(key))
-                )
+                cls.state_machine.process_keyword("insertValue", str(item.get(key)))
             await cls.exec(True)
         return True
 
