@@ -114,7 +114,7 @@ class SqlStateMachine:
 
         data_dict = dict(zip(self.sql_parts["field"], self.sql_parts["value"]))
         set_clause = ", ".join(
-            [f"{key} = '{value}'" for key, value in data_dict.items()]
+            [f"{key} = '{value.replace("'", "\\'").replace('"','\\"')}'" for key, value in data_dict.items()]
         )
         self.execute_sql = f"UPDATE {self.sql_parts['from']} SET {set_clause}"
         self.execute_sql += f" where {' AND '.join(self.sql_parts['where'])}"
@@ -348,20 +348,24 @@ class LaModel(metaclass=ABCMeta):
 
     @classmethod
     async def update(cls: type[T], data: T | list[T] = None):
+        if not data:
+            return
         cls.state_machine.mode = "update"
         if data and not isinstance(data, (list, tuple)):
             data = [data]
 
         for item in data:
             cls.state_machine.process_keyword(
-                "where", f"{cls.primaryKey}={getattr(item, cls.primaryKey)}"
+                "where", f"{cls.primaryKey}={item.get(cls.primaryKey)}"
             )
             for key, _ in cls.dictMap.items():
                 if key == cls.primaryKey:
                     continue
+                if not item.get(key):
+                    continue
                 cls.state_machine.process_keyword("insertField", key)
                 cls.state_machine.process_keyword(
-                    "insertValue", str(getattr(item, key))
+                    "insertValue", str(item.get(key))
                 )
             await cls.exec(True)
         return True
