@@ -296,7 +296,9 @@ class LaModel(metaclass=ABCMeta):
         return AttrDict(**res)
 
     @classmethod
-    async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
+    async def getList(
+        cls: type[T], primaryIdList: list[int] | list[str] = None
+    ) -> list[T]:
         """
         获取多个对象
         """
@@ -412,7 +414,7 @@ class LaModel(metaclass=ABCMeta):
 
 
 class FieldDescriptor:
-    def __init__(self, primary=False):
+    def __init__(self, name="", primary=False):
         self.primary = primary
 
     def __set_name__(self, owner, name):
