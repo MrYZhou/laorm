@@ -177,6 +177,14 @@ state_machine_pool = SqlStateMachinePool()
 T = TypeVar("T", bound="LaModel")
 
 
+class AttrDict(dict):
+    def __getattr__(self, attr):
+        return self.get(attr)
+
+    def __setattr__(self, attr, value):
+        self[attr] = value
+
+
 class LaModel(metaclass=ABCMeta):
     excuteSql = ""
     state_machine = state_machine_pool.acquire()
@@ -285,7 +293,7 @@ class LaModel(metaclass=ABCMeta):
         if primaryId is not None:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
         res, _ = await cls.exec(True)
-        return res
+        return AttrDict(**res)
 
     @classmethod
     async def getList(cls: type[T], primaryIdList: list[int] | list[str] = None) -> T:
@@ -297,7 +305,7 @@ class LaModel(metaclass=ABCMeta):
                 "where", f"{cls.primaryKey} in {tuple(primaryIdList)}"
             )
         res, _ = await cls.exec()
-        return res
+        return [AttrDict(**dict) for dict in res]
 
     @classmethod
     async def page(cls: type[T], page: dict) -> T:
