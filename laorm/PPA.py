@@ -13,7 +13,10 @@ class PPA:
 
     @classmethod
     async def startup(cls):
-        PPA.pool = await aiomysql.create_pool(**cls.startup_params)
+        try:
+            PPA.pool = await aiomysql.create_pool(**cls.startup_params)
+        except Exception as e:
+            print("数据库连接失败:", e)
 
     @classmethod
     async def shutdown(cls):
