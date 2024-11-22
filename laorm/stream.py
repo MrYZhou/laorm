@@ -177,13 +177,20 @@ state_machine_pool = SqlStateMachinePool()
 T = TypeVar("T", bound="LaModel")
 
 
-class AttrDict(dict):
-    def __getattr__(self, attr):
-        return self.get(attr)
+# 此版本会使得丢失sql方法，但是数据结构会更加清晰
+# return AttrDict(**res)
+# class AttrDict(dict):
+#     def __getattr__(self, attr):
+#         return self.get(attr)
 
-    def __setattr__(self, attr, value):
-        self[attr] = value
-
+#     def __setattr__(self, attr, value):
+#         self[attr] = value
+async def to_model(cls,data):
+    obj = cls()
+    for key in dict(obj).keys():
+        if key in data:
+            setattr(obj, key, data[key])
+    return obj
 
 class LaModel(metaclass=ABCMeta):
     excuteSql = ""
@@ -293,7 +300,7 @@ class LaModel(metaclass=ABCMeta):
         if primaryId is not None:
             cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
         res, _ = await cls.exec(True)
-        return AttrDict(**res)
+        return await to_model(cls,res)
 
     @classmethod
     async def getList(
@@ -307,7 +314,7 @@ class LaModel(metaclass=ABCMeta):
                 "where", f"{cls.primaryKey} in {tuple(primaryIdList)}"
             )
         res, _ = await cls.exec()
-        return [AttrDict(**dict) for dict in res]
+        return  [await to_model(cls,data) for data in res]
 
     @classmethod
     async def page(cls: type[T], page: dict) -> T:
@@ -317,7 +324,7 @@ class LaModel(metaclass=ABCMeta):
         cls.state_machine.process_keyword("limit", f"limit {pageIndex},{size}")
         res, sql = await cls.exec()
         pageData = {
-            "list": res,
+            "list": [await to_model(cls,data) for data in res],
         }
         # 定义正则表达式模式，匹配"SELECT *"和"FROM"之间的任何字符（包括换行符）
         countSql = re.sub(r"(?i)SELECT .* FROM", "count(*) from", sql)
@@ -433,6 +440,14 @@ def table(table_name: str = None):
             @sql
             def selectById(id: str | int) -> T:
                 pass
+            def __getitem__(self, key):
+                return getattr(self, key)
+
+            def __setitem__(self, key, value):
+                setattr(self, key, value)
+                
+            def __iter__(self):
+                return iter(self.__dict__.items())    
 
         DecoratedModel.tablename = (
             table_name if table_name is not None else cls.__name__.lower()
