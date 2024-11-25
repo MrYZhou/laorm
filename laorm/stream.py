@@ -24,7 +24,8 @@ class SqlStateMachine:
         ]
         self.current_state = "initial"
         self.execute_sql = ""
-        self.keyword = ["select", "from", "where", "GROUP by", "having", "ORDER by"]
+        self.keyword = ["select", "from", "where",
+                        "GROUP by", "having", "ORDER by"]
         self.sql_parts = {
             "select": [],
             "from": "",
@@ -75,7 +76,8 @@ class SqlStateMachine:
             return True
         if not self.sql_parts["select"]:
             self.sql_parts["select"] = ["*"]
-        execute_sql = f"select {' ,'.join(self.sql_parts['select'])} from {self.sql_parts['from']} "
+        execute_sql = f"select {' ,'.join(self.sql_parts['select'])} from {
+            self.sql_parts['from']} "
         if self.sql_parts["where"]:
             execute_sql += f"where {' AND '.join(self.sql_parts['where'])} "
         if self.sql_parts["group_by"]:
@@ -99,14 +101,16 @@ class SqlStateMachine:
             values_str_list.append(f"({', '.join(seg)})")
 
         # 合并成一条INSERT语句
-        self.execute_sql = f"INSERT INTO {self.sql_parts['from']} ({', '.join(self.sql_parts['field'])}) VALUES {', '.join(values_str_list)};"
+        self.execute_sql = f"INSERT INTO {self.sql_parts['from']} ({', '.join(
+            self.sql_parts['field'])}) VALUES {', '.join(values_str_list)};"
 
     def deleteMode(self):
         if self.mode != "delete":
             return True
         self.execute_sql = f"DELETE from {self.sql_parts['from']} "
         if self.sql_parts["where"]:
-            self.execute_sql += f"where {' AND '.join(self.sql_parts['where'])} "
+            self.execute_sql += f"where {
+                ' AND '.join(self.sql_parts['where'])} "
 
     def updateMode(self):
         if self.mode != "update":
@@ -115,7 +119,7 @@ class SqlStateMachine:
         data_dict = dict(zip(self.sql_parts["field"], self.sql_parts["value"]))
         set_clause = ", ".join(
             [
-                f"{key} = '{value.replace("'", "\\'").replace('"','\\"')}'"
+                f"{key} = '{value.replace("'", "\\'").replace('"', '\\"')}'"
                 for key, value in data_dict.items()
             ]
         )
@@ -185,7 +189,7 @@ T = TypeVar("T", bound="LaModel")
 
 #     def __setattr__(self, attr, value):
 #         self[attr] = value
-async def to_model(cls,data):
+async def to_model(cls, data):
     if data is None:
         return None
     obj = cls()
@@ -193,6 +197,7 @@ async def to_model(cls,data):
         if key in data:
             setattr(obj, key, data[key])
     return obj
+
 
 class LaModel(metaclass=ABCMeta):
     excuteSql = ""
@@ -243,7 +248,8 @@ class LaModel(metaclass=ABCMeta):
             if i == "By" or i == "And":
                 cls.state_machine.current_state = "where"
                 continue
-            cls.state_machine.process_keyword(cls.state_machine.current_state, f"{i}=?")
+            cls.state_machine.process_keyword(
+                cls.state_machine.current_state, f"{i}=?")
 
     @classmethod
     def select(cls: type[T], params: str = "*") -> type[T]:
@@ -300,9 +306,10 @@ class LaModel(metaclass=ABCMeta):
         获取单个对象
         """
         if primaryId is not None:
-            cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
+            cls.state_machine.process_keyword(
+                "where", f"{cls.primaryKey}={primaryId}")
         res, _ = await cls.exec(True)
-        return await to_model(cls,res)
+        return await to_model(cls, res)
 
     @classmethod
     async def getList(
@@ -316,7 +323,7 @@ class LaModel(metaclass=ABCMeta):
                 "where", f"{cls.primaryKey} in {tuple(primaryIdList)}"
             )
         res, _ = await cls.exec()
-        return  [await to_model(cls,data) for data in res]
+        return [await to_model(cls, data) for data in res]
 
     @classmethod
     async def page(cls: type[T], page: dict) -> T:
@@ -325,8 +332,10 @@ class LaModel(metaclass=ABCMeta):
         pageIndex = (pageIndex - 1) * size
         cls.state_machine.process_keyword("limit", f"limit {pageIndex},{size}")
         res, sql = await cls.exec()
+        if not res:
+            return {"list": [], "page": {"total": 0, "page": page.get("page"), "size": size}}
         pageData = {
-            "list": [await to_model(cls,data) for data in res],
+            "list": [await to_model(cls, data) for data in res],
         }
         # 定义正则表达式模式，匹配"SELECT *"和"FROM"之间的任何字符（包括换行符）
         countSql = re.sub(r"(?i)SELECT .* FROM", "count(*) from", sql)
@@ -378,15 +387,16 @@ class LaModel(metaclass=ABCMeta):
 
         for item in data:
             cls.state_machine.process_keyword(
-                "where", f"{cls.primaryKey}={item.get(cls.primaryKey)}"
+                "where", f"{cls.primaryKey}={item[cls.primaryKey]}"
             )
             for key, _ in cls.dictMap.items():
                 if key == cls.primaryKey:
                     continue
-                if not item.get(key):
+                if not item[key] or isinstance(item[key], FieldDescriptor):
                     continue
                 cls.state_machine.process_keyword("insertField", key)
-                cls.state_machine.process_keyword("insertValue", str(item.get(key)))
+                cls.state_machine.process_keyword(
+                    "insertValue", str(item[key]))
             await cls.exec(True)
         return True
 
@@ -402,9 +412,11 @@ class LaModel(metaclass=ABCMeta):
         if isinstance(primaryId, list) and primaryId != []:
             # python3.12以下不支持嵌套f字符串
             ids = ", ".join(map(lambda id: f"'{id}'", primaryId))
-            cls.state_machine.process_keyword("where", f"{cls.primaryKey} in ({ids})")
+            cls.state_machine.process_keyword(
+                "where", f"{cls.primaryKey} in ({ids})")
         else:
-            cls.state_machine.process_keyword("where", f"{cls.primaryKey}={primaryId}")
+            cls.state_machine.process_keyword(
+                "where", f"{cls.primaryKey}={primaryId}")
         await cls.exec(True)
         return cls
 
@@ -442,14 +454,15 @@ def table(table_name: str = None):
             @sql
             def selectById(id: str | int) -> T:
                 pass
+
             def __getitem__(self, key):
                 return getattr(self, key)
 
             def __setitem__(self, key, value):
                 setattr(self, key, value)
-                
+
             def __iter__(self):
-                return iter(self.__dict__.items())    
+                return iter(self.__dict__.items())
 
         DecoratedModel.tablename = (
             table_name if table_name is not None else cls.__name__.lower()
@@ -475,7 +488,8 @@ def sql(func):
         method_name = func.__name__
         if not method_name.startswith("select"):
             raise ValueError(
-                f"Unsupported SQL operation for method: {method_name},because only support select methods"
+                f"Unsupported SQL operation for method: {
+                    method_name},because only support select methods"
             )
 
         # 根据return_annotation返回对应类型的值,比如列表处理为列表,单个处理单个对象
