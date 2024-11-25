@@ -186,6 +186,8 @@ T = TypeVar("T", bound="LaModel")
 #     def __setattr__(self, attr, value):
 #         self[attr] = value
 async def to_model(cls,data):
+    if data is None:
+        return None
     obj = cls()
     for key in dict(obj).keys():
         if key in data:
