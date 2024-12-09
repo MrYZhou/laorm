@@ -11,17 +11,6 @@ repository = "https://github.com/mryzhou/laorm.git" # 可选，指定项目仓�
 python = "^3.10"
 cryptography = "^42.0.5" # aiomysql 密码认证依赖
 
-# [tool.poetry.dev-dependencies]
-# aiomysql = "*"                                           # 默认的 MySQL 驱动
-# fastapi = "^0.110.0"                                     # 更改为最新稳定版的FastAPI
-# uvicorn = { extras = ["standard"], version = "^0.27.1" } # 或者使用最新稳定版Uvicorn
-# pydantic = "^2.7.4"
-
-# [tool.poetry.extras]
-# mysql = ["aiomysql"]
-# postgresql = ["asyncpg"]
-# sqlite = ["aiosqlite"]
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
